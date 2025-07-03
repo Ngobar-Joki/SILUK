@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 
 // Import CSS untuk animasi custom
-import "../../../public/css/animations.css";
+import "../../css/animations.css";
 
 interface ThemeContextType {
     theme: string;
