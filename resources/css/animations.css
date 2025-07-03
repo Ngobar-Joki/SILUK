@@ -521,6 +521,7 @@ ul {
     padding-top: 80px;
     position: relative;
     overflow: hidden;
+    z-index: 10; /* Ensure hero section is above other sections */
 }
 
 .hero-content {
@@ -528,6 +529,8 @@ ul {
     flex-direction: column;
     gap: var(--spacing-xl);
     padding: var(--spacing-xl) 0;
+    position: relative;
+    z-index: 2; /* Ensure content is above background elements */
 }
 
 @media (min-width: 992px) {
@@ -607,6 +610,8 @@ ul {
     flex-wrap: wrap;
     gap: var(--spacing-md);
     animation: fadeInUp 0.8s ease-out 0.4s both;
+    position: relative;
+    z-index: 3; /* Ensure buttons are above everything */
 }
 
 .primary-button {
@@ -623,6 +628,10 @@ ul {
     background-size: 200% 200%;
     position: relative;
     overflow: hidden;
+    z-index: 4; /* Higher z-index for buttons */
+    border: none;
+    text-decoration: none;
+    cursor: pointer;
 }
 
 .primary-button::before {
@@ -671,6 +680,8 @@ ul {
     transition: all var(--transition-fast);
     position: relative;
     overflow: hidden;
+    z-index: 4; /* Higher z-index for buttons */
+    cursor: pointer;
 }
 
 .secondary-button::before {
@@ -808,6 +819,7 @@ ul {
     border-radius: 50%;
     animation: rotate 20s linear infinite;
     opacity: 0.6;
+    will-change: transform; /* Optimize for smooth animation */
 }
 
 .dark-mode .hero-circle {
@@ -822,6 +834,7 @@ ul {
     bottom: 0;
     left: 0;
     width: 100%;
+    z-index: 1; /* Lower z-index to stay behind content */
 }
 
 .wave-path {
@@ -832,6 +845,8 @@ ul {
 .stats-section {
     background-color: var(--bg-alt);
     padding: var(--spacing-xl) 0;
+    position: relative;
+    z-index: 5; /* Lower than hero section but above background elements */
 }
 
 .stats-grid {
@@ -2077,9 +2092,16 @@ body {
 
 /* Performance optimizations for mobile */
 @media (max-width: 768px) {
-    .hero-blob,
+    .hero-blob {
+        display: none; /* Hide blob for better performance */
+    }
+
     .hero-circle {
-        display: none; /* Hide complex animations on mobile for better performance */
+        display: block; /* Keep the rotating wheel */
+        width: 200px; /* Smaller size for mobile */
+        height: 200px;
+        animation-duration: 15s; /* Slightly slower for better performance */
+        will-change: transform; /* Optimize for animation */
     }
 
     .floating-card {
@@ -3064,6 +3086,9 @@ body {
         flex-direction: column;
         align-items: center;
         gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-xl); /* Add extra margin bottom for mobile */
+        position: relative;
+        z-index: 10; /* Ensure buttons are on top on mobile */
     }
 
     .primary-button,
@@ -3073,6 +3098,9 @@ body {
         justify-content: center;
         padding: 0.75rem 1.5rem;
         font-size: 0.95rem;
+        position: relative;
+        z-index: 11; /* Higher z-index for mobile buttons */
+        margin-bottom: var(--spacing-xs); /* Space between buttons */
     }
 
     .hero-image {

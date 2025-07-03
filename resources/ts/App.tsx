@@ -7,7 +7,8 @@ import {
 } from "react-router-dom";
 import Welcome from "./pages/welcome";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "./operator/Dashboard";
+
 
 const App: React.FC = () => {
     return (
@@ -17,6 +18,7 @@ const App: React.FC = () => {
                     <Route path="/" element={<Welcome />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/dashboard" element={<Dashboard />} />
+                   
                     {/* Fallback Route */}
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
