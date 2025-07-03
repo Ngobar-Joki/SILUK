@@ -77,6 +77,8 @@ const Welcome: React.FC = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [activeSection, setActiveSection] = useState("home");
+    const [parallaxOffset, setParallaxOffset] = useState(0);
+    const [isRegistrationInView, setIsRegistrationInView] = useState(false);
     const sectionRefs = {
         home: useRef<HTMLElement>(null),
         pendaftaran: useRef<HTMLElement>(null),
@@ -89,10 +91,26 @@ const Welcome: React.FC = () => {
     // Handle scroll effect
     useEffect(() => {
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 50);
+            const scrollY = window.scrollY;
+            setIsScrolled(scrollY > 50);
+
+            // Parallax effect for registration section (only if in view)
+            if (sectionRefs.pendaftaran.current && isRegistrationInView) {
+                const rect =
+                    sectionRefs.pendaftaran.current.getBoundingClientRect();
+                const isInView =
+                    rect.top < window.innerHeight && rect.bottom > 0;
+
+                if (isInView) {
+                    const parallaxSpeed = 0.5;
+                    const offset =
+                        (window.innerHeight - rect.top) * parallaxSpeed;
+                    setParallaxOffset(offset);
+                }
+            }
 
             // Update active section based on scroll position
-            const scrollPosition = window.scrollY + 100;
+            const scrollPosition = scrollY + 100;
 
             const activeSectionName = Object.entries(sectionRefs).find(
                 ([_, ref]) => {
@@ -114,6 +132,29 @@ const Welcome: React.FC = () => {
 
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
+    }, [isRegistrationInView]);
+
+    // Intersection Observer for registration section
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                setIsRegistrationInView(entry.isIntersecting);
+            },
+            {
+                threshold: 0.1,
+                rootMargin: "100px 0px",
+            }
+        );
+
+        if (sectionRefs.pendaftaran.current) {
+            observer.observe(sectionRefs.pendaftaran.current);
+        }
+
+        return () => {
+            if (sectionRefs.pendaftaran.current) {
+                observer.unobserve(sectionRefs.pendaftaran.current);
+            }
+        };
     }, []);
 
     // Animasi mengetik untuk hero section
@@ -527,9 +568,41 @@ const Welcome: React.FC = () => {
                 id="pendaftaran"
                 ref={sectionRefs.pendaftaran}
                 className="registration-section"
+                style={{
+                    position: "relative",
+                    overflow: "hidden",
+                }}
             >
-                <div className="container">
-                    <div className="section-header">
+                {/* Parallax Background Elements */}
+                <div
+                    className="parallax-bg-elements"
+                    style={{
+                        transform: `translateY(${parallaxOffset * 0.3}px)`,
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        zIndex: 0,
+                        pointerEvents: "none",
+                    }}
+                >
+                    <div className="floating-shape shape-1"></div>
+                    <div className="floating-shape shape-2"></div>
+                    <div className="floating-shape shape-3"></div>
+                    <div className="floating-shape shape-4"></div>
+                </div>
+
+                <div
+                    className="container"
+                    style={{ position: "relative", zIndex: 1 }}
+                >
+                    <div
+                        className="section-header"
+                        style={{
+                            transform: `translateY(${parallaxOffset * 0.1}px)`,
+                        }}
+                    >
                         <h2>Proses Pendaftaran</h2>
                         <div className="section-line"></div>
                         <p>
@@ -537,10 +610,23 @@ const Welcome: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="registration-track">
+                    <div
+                        className="registration-track"
+                        style={{
+                            transform: `translateY(${parallaxOffset * 0.05}px)`,
+                        }}
+                    >
                         <div className="track-line"></div>
 
-                        <div className="track-step" data-step="1">
+                        <div
+                            className="track-step"
+                            data-step="1"
+                            style={{
+                                transform: `translateY(${
+                                    parallaxOffset * 0.08
+                                }px)`,
+                            }}
+                        >
                             <div className="step-circle">
                                 <div className="step-icon">📝</div>
                             </div>
@@ -559,7 +645,15 @@ const Welcome: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="track-step" data-step="2">
+                        <div
+                            className="track-step"
+                            data-step="2"
+                            style={{
+                                transform: `translateY(${
+                                    parallaxOffset * 0.06
+                                }px)`,
+                            }}
+                        >
                             <div className="step-circle">
                                 <div className="step-icon">💰</div>
                             </div>
@@ -577,7 +671,15 @@ const Welcome: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="track-step" data-step="3">
+                        <div
+                            className="track-step"
+                            data-step="3"
+                            style={{
+                                transform: `translateY(${
+                                    parallaxOffset * 0.04
+                                }px)`,
+                            }}
+                        >
                             <div className="step-circle">
                                 <div className="step-icon">✅</div>
                             </div>
@@ -596,7 +698,15 @@ const Welcome: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="track-step" data-step="4">
+                        <div
+                            className="track-step"
+                            data-step="4"
+                            style={{
+                                transform: `translateY(${
+                                    parallaxOffset * 0.02
+                                }px)`,
+                            }}
+                        >
                             <div className="step-circle">
                                 <div className="step-icon">🎉</div>
                             </div>
@@ -615,7 +725,12 @@ const Welcome: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="registration-cta">
+                    <div
+                        className="registration-cta"
+                        style={{
+                            transform: `translateY(${parallaxOffset * 0.03}px)`,
+                        }}
+                    >
                         <button className="primary-button registration-button">
                             <span>Mulai Pendaftaran</span>
                             <span className="button-arrow">→</span>
