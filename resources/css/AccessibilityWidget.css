@@ -1,0 +1,292 @@
+/* Accessibility Widget Global Styles */
+
+/* Base accessibility variables */
+:root {
+    --accessibility-font-size: 100%;
+    --accessibility-font-scale: 1;
+    --accessibility-font-family: Inter, system-ui, sans-serif;
+    --accessibility-letter-spacing: normal;
+    --accessibility-line-height: 1.6;
+    --accessibility-font-weight: 400;
+}
+
+/* Apply accessibility settings to all elements with better font size scaling */
+html {
+    font-size: calc(16px * var(--accessibility-font-scale)) !important;
+}
+
+* {
+    font-family: var(--accessibility-font-family) !important;
+    letter-spacing: var(--accessibility-letter-spacing) !important;
+    line-height: var(--accessibility-line-height) !important;
+}
+
+/* Ensure proper font size inheritance */
+body,
+p,
+span,
+div,
+a,
+button,
+input,
+textarea,
+select,
+label,
+li,
+td,
+th {
+    font-size: inherit !important;
+}
+
+/* Override for specific elements that need font-weight */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-bold,
+.font-semibold,
+.font-medium,
+strong,
+b {
+    font-weight: var(--accessibility-font-weight) !important;
+}
+
+/* Title highlighting */
+.accessibility-highlight-titles h1,
+.accessibility-highlight-titles h2,
+.accessibility-highlight-titles h3,
+.accessibility-highlight-titles h4,
+.accessibility-highlight-titles h5,
+.accessibility-highlight-titles h6,
+.accessibility-highlight-titles [class*="title"],
+.accessibility-highlight-titles [class*="heading"],
+.accessibility-highlight-titles .logo-text,
+.accessibility-highlight-titles .hero-title {
+    background-color: #fef3c7 !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    border: 2px solid #f59e0b !important;
+    display: inline-block !important;
+    margin: 4px 0 !important;
+}
+
+/* Enhanced Link highlighting - targeting navbar and all navigation elements */
+.accessibility-highlight-links a,
+.accessibility-highlight-links [href],
+.accessibility-highlight-links button[role="link"],
+.accessibility-highlight-links [role="button"],
+.accessibility-highlight-links [class*="button"],
+.accessibility-highlight-links [class*="link"],
+.accessibility-highlight-links nav a,
+.accessibility-highlight-links .nav a,
+.accessibility-highlight-links .navbar a,
+.accessibility-highlight-links .header a,
+.accessibility-highlight-links .navigation a,
+.accessibility-highlight-links .desktop-nav a,
+.accessibility-highlight-links .mobile-nav a,
+.accessibility-highlight-links .menu a,
+.accessibility-highlight-links .dropdown a,
+.accessibility-highlight-links li a,
+.accessibility-highlight-links .primary-button,
+.accessibility-highlight-links .secondary-button,
+.accessibility-highlight-links .login-button,
+.accessibility-highlight-links .page-btn,
+.accessibility-highlight-links .pagination-btn,
+.accessibility-highlight-links .mobile-login-button,
+.accessibility-highlight-links .sidebar-nav-item,
+.accessibility-highlight-links .sidebar-submenu-item,
+.accessibility-highlight-links .hamburger,
+.accessibility-highlight-links .mobile-menu-toggle,
+.accessibility-highlight-links .action-button,
+.accessibility-highlight-links .profile-button,
+.accessibility-highlight-links .dropdown-item,
+.accessibility-highlight-links .quick-action,
+.accessibility-highlight-links .tab-button,
+.accessibility-highlight-links .nav-button {
+    background-color: #dbeafe !important;
+    border: 2px solid #3b82f6 !important;
+    border-radius: 4px !important;
+    padding: 2px 6px !important;
+    text-decoration: underline !important;
+    font-weight: 600 !important;
+    margin: 1px !important;
+    box-shadow: 0 0 0 1px #3b82f6 !important;
+    position: relative !important;
+}
+
+/* Additional selectors for specific components */
+.accessibility-highlight-links .header-actions button,
+.accessibility-highlight-links .footer a,
+.accessibility-highlight-links .social-icon,
+.accessibility-highlight-links .footer-links a {
+    background-color: #dbeafe !important;
+    border: 2px solid #3b82f6 !important;
+    border-radius: 4px !important;
+    padding: 2px 6px !important;
+    text-decoration: underline !important;
+    font-weight: 600 !important;
+    margin: 1px !important;
+    box-shadow: 0 0 0 1px #3b82f6 !important;
+}
+
+/* High contrast mode enhancements */
+@media (prefers-contrast: high) {
+    .accessibility-highlight-titles h1,
+    .accessibility-highlight-titles h2,
+    .accessibility-highlight-titles h3,
+    .accessibility-highlight-titles h4,
+    .accessibility-highlight-titles h5,
+    .accessibility-highlight-titles h6 {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border-color: #ffffff !important;
+    }
+
+    .accessibility-highlight-links a,
+    .accessibility-highlight-links button,
+    .accessibility-highlight-links [role="button"],
+    .accessibility-highlight-links [class*="button"] {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border-color: #ffffff !important;
+    }
+}
+
+/* Focus indicators for better keyboard navigation */
+*:focus {
+    outline: 3px solid #3b82f6 !important;
+    outline-offset: 2px !important;
+}
+
+/* Screen reader only content */
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* Ensure text doesn't become too small and mobile responsiveness */
+@media (max-width: 768px) {
+    .accessibility-widget {
+        bottom: 10px !important;
+        left: 10px !important;
+    }
+
+    .accessibility-toggle-btn {
+        width: 50px !important;
+        height: 50px !important;
+        font-size: 20px !important;
+    }
+
+    .accessibility-panel {
+        width: calc(100vw - 40px) !important;
+        max-width: 320px !important;
+        bottom: 60px !important;
+    }
+}
+
+/* Dyslexia-friendly font improvements */
+body[style*="Comic Sans"] *,
+.dyslexia-font * {
+    font-family: "Comic Sans MS", "Comic Neue", cursive, sans-serif !important;
+    font-weight: 400 !important;
+}
+
+/* Print styles */
+@media print {
+    .accessibility-widget {
+        display: none !important;
+    }
+
+    .accessibility-highlight-titles h1,
+    .accessibility-highlight-titles h2,
+    .accessibility-highlight-titles h3,
+    .accessibility-highlight-titles h4,
+    .accessibility-highlight-titles h5,
+    .accessibility-highlight-titles h6 {
+        background-color: transparent !important;
+        border: 2px solid #000000 !important;
+        color: #000000 !important;
+    }
+}
+
+/* Motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .accessibility-widget * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Dark mode accessibility */
+@media (prefers-color-scheme: dark) {
+    .accessibility-highlight-titles h1,
+    .accessibility-highlight-titles h2,
+    .accessibility-highlight-titles h3,
+    .accessibility-highlight-titles h4,
+    .accessibility-highlight-titles h5,
+    .accessibility-highlight-titles h6 {
+        background-color: #1f2937 !important;
+        color: #f9fafb !important;
+        border-color: #fbbf24 !important;
+    }
+
+    .accessibility-highlight-links a,
+    .accessibility-highlight-links button {
+        background-color: #1e3a8a !important;
+        color: #e0e7ff !important;
+        border-color: #60a5fa !important;
+    }
+}
+
+/* Ensure accessibility styles don't break existing layouts */
+.accessibility-widget {
+    position: fixed !important;
+    z-index: 999999 !important;
+    font-family: Inter, system-ui, sans-serif !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    letter-spacing: normal !important;
+}
+
+.accessibility-widget * {
+    box-sizing: border-box !important;
+}
+
+/* Custom scrollbar for accessibility panel */
+.accessibility-panel {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.accessibility-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.accessibility-panel::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.accessibility-panel::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.accessibility-panel::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Ensure widget is above everything else */
+.accessibility-widget {
+    z-index: 2147483647 !important;
+}
