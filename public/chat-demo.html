@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>SILUK - Live Chat Widget Demo</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            body {
+                font-family: "Inter", sans-serif;
+            }
+
+            @keyframes chatBounce {
+                0%,
+                60%,
+                100% {
+                    transform: translateY(0);
+                }
+                30% {
+                    transform: translateY(-10px);
+                }
+            }
+
+            @keyframes chatPing {
+                75%,
+                100% {
+                    transform: scale(2);
+                    opacity: 0;
+                }
+            }
+
+            .chat-bounce {
+                animation: chatBounce 1.4s infinite;
+            }
+            .chat-ping {
+                animation: chatPing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+            }
+
+            .chat-widget::-webkit-scrollbar {
+                width: 4px;
+            }
+            .chat-widget::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 2px;
+            }
+            .chat-widget::-webkit-scrollbar-thumb {
+                background: #c1c1c1;
+                border-radius: 2px;
+            }
+            .chat-widget::-webkit-scrollbar-thumb:hover {
+                background: #a8a8a8;
+            }
+
+            .chat-scale-enter {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+                transition: all 0.3s ease-out;
+            }
+            .chat-scale-enter-active {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        </style>
+    </head>
+    <body class="bg-gray-50 min-h-screen">
+        <!-- Demo Content -->
+        <div class="container mx-auto px-4 py-8">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-blue-900 mb-4">
+                    SILUK - Sistem Layanan Koperasi
+                </h1>
+                <p class="text-gray-600">
+                    Live Chat Widget Demo - Klik ikon chat di pojok kanan bawah!
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="font-semibold text-lg mb-2">💰 Simpanan</h3>
+                    <p class="text-gray-600">
+                        Berbagai produk simpanan dengan bunga menarik
+                    </p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="font-semibold text-lg mb-2">💳 Pinjaman</h3>
+                    <p class="text-gray-600">
+                        Solusi pinjaman untuk kebutuhan Anda
+                    </p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="font-semibold text-lg mb-2">📊 Laporan</h3>
+                    <p class="text-gray-600">
+                        Laporan keuangan transparan setiap bulan
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Chat Widget -->
+        <div id="chatWidget" class="fixed bottom-6 right-6 z-50">
+            <!-- Chat Window -->
+            <div
+                id="chatWindow"
+                class="absolute bottom-20 right-0 w-80 h-96 bg-white rounded-lg shadow-2xl transform transition-all duration-300 ease-in-out scale-95 opacity-0 pointer-events-none"
+            >
+                <!-- Header -->
+                <div
+                    class="flex items-center justify-between p-4 bg-blue-900 rounded-t-lg text-white"
+                >
+                    <div class="flex items-center space-x-3">
+                        <div class="relative">
+                            <div
+                                class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm"
+                            >
+                                <span class="text-xl">🏦</span>
+                            </div>
+                            <div
+                                class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse"
+                            ></div>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-sm">Nito</h3>
+                            <p class="text-xs opacity-90">
+                                Asisten Virtual SILUK
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onclick="toggleChat()"
+                        class="text-white hover:bg-white/10 rounded-full p-1 transition-colors"
+                    >
+                        <svg
+                            class="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"
+                            />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Messages -->
+                <div
+                    id="chatMessages"
+                    class="flex-1 p-4 h-64 overflow-y-auto bg-gray-50 chat-widget"
+                >
+                    <div class="space-y-3">
+                        <!-- Initial Bot Message -->
+                        <div class="flex justify-start">
+                            <div
+                                class="max-w-xs px-3 py-2 bg-white text-gray-800 rounded-lg shadow-sm border"
+                            >
+                                <p class="text-sm">
+                                    Halo! Saya Nito, asisten virtual SILUK. Ada
+                                    yang bisa saya bantu hari ini? 😊
+                                </p>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Just now
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Replies -->
+                    <div id="quickReplies" class="mt-4">
+                        <p class="text-xs text-gray-500 mb-2">
+                            Pilih topik yang ingin ditanyakan:
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <button
+                                onclick="sendQuickReply('📝 Cara daftar jadi anggota')"
+                                class="text-xs px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                            >
+                                📝 Cara daftar jadi anggota
+                            </button>
+                            <button
+                                onclick="sendQuickReply('💰 Info simpanan & pinjaman')"
+                                class="text-xs px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                            >
+                                💰 Info simpanan & pinjaman
+                            </button>
+                            <button
+                                onclick="sendQuickReply('📊 Lihat laporan keuangan')"
+                                class="text-xs px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                            >
+                                📊 Lihat laporan keuangan
+                            </button>
+                            <button
+                                onclick="sendQuickReply('🏢 Lokasi kantor cabang')"
+                                class="text-xs px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                            >
+                                🏢 Lokasi kantor cabang
+                            </button>
+                            <button
+                                onclick="sendQuickReply('📞 Hubungi customer service')"
+                                class="text-xs px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                            >
+                                📞 Hubungi customer service
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="messagesEnd"></div>
+                </div>
+
+                <!-- Input -->
+                <div class="p-4 bg-white rounded-b-lg border-t">
+                    <div class="flex space-x-2">
+                        <input
+                            id="messageInput"
+                            type="text"
+                            placeholder="Ketik pesan Anda..."
+                            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                            onkeypress="handleKeyPress(event)"
+                        />
+                        <button
+                            onclick="sendMessage()"
+                            class="px-4 py-2 bg-blue-900 text-white rounded-lg transition-colors hover:bg-blue-800"
+                        >
+                            <svg
+                                class="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Button -->
+            <button
+                id="chatButton"
+                onclick="toggleChat()"
+                class="relative w-16 h-16 bg-blue-900 rounded-full text-white shadow-lg transform transition-all duration-200 hover:scale-110 hover:shadow-xl"
+            >
+                <!-- Notification Badge -->
+                <div
+                    id="notificationBadge"
+                    class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center animate-pulse hidden"
+                >
+                    <span class="text-white text-xs font-bold">!</span>
+                </div>
+
+                <!-- Icon -->
+                <div
+                    id="chatIcon"
+                    class="transform transition-transform duration-200"
+                >
+                    <svg
+                        class="w-6 h-6 mx-auto"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                        />
+                    </svg>
+                </div>
+            </button>
+
+            <!-- Floating Animation Circles -->
+            <div class="absolute inset-0 pointer-events-none">
+                <div
+                    id="pingCircle1"
+                    class="absolute w-20 h-20 bg-blue-900 rounded-full opacity-20 chat-ping"
+                ></div>
+                <div
+                    id="pingCircle2"
+                    class="absolute w-16 h-16 bg-blue-600 rounded-full opacity-30 chat-ping"
+                    style="animation-delay: 1s"
+                ></div>
+            </div>
+        </div>
+
+        <script>
+            let isOpen = false;
+            let messageCount = 0;
+
+            const botResponses = [
+                "Terima kasih telah menghubungi SILUK! Tim customer service kami akan segera membantu Anda. 😊",
+                "Untuk informasi simpanan dan pinjaman, silakan kunjungi halaman layanan kami atau hubungi cabang terdekat.",
+                "Apakah Anda ingin mengetahui lebih lanjut tentang program keanggotaan SILUK?",
+                "Silakan kunjungi halaman FAQ untuk informasi lengkap mengenai layanan koperasi SILUK.",
+                "Tim support SILUK siap membantu Anda 24/7. Ada pertanyaan lain tentang koperasi?",
+                "Terima kasih sudah mempercayai SILUK! Kami senang bisa membantu anggota koperasi. 🏦",
+            ];
+
+            function toggleChat() {
+                const chatWindow = document.getElementById("chatWindow");
+                const chatIcon = document.getElementById("chatIcon");
+                const notificationBadge =
+                    document.getElementById("notificationBadge");
+                const pingCircles =
+                    document.querySelectorAll('[id^="pingCircle"]');
+
+                isOpen = !isOpen;
+
+                if (isOpen) {
+                    chatWindow.classList.remove(
+                        "scale-95",
+                        "opacity-0",
+                        "pointer-events-none"
+                    );
+                    chatWindow.classList.add("scale-100", "opacity-100");
+                    chatIcon.classList.add("rotate-180");
+                    notificationBadge.classList.add("hidden");
+                    pingCircles.forEach(
+                        (circle) => (circle.style.display = "none")
+                    );
+
+                    // Focus input
+                    setTimeout(() => {
+                        document.getElementById("messageInput").focus();
+                    }, 300);
+                } else {
+                    chatWindow.classList.add(
+                        "scale-95",
+                        "opacity-0",
+                        "pointer-events-none"
+                    );
+                    chatWindow.classList.remove("scale-100", "opacity-100");
+                    chatIcon.classList.remove("rotate-180");
+                    pingCircles.forEach(
+                        (circle) => (circle.style.display = "block")
+                    );
+                }
+            }
+
+            function addMessage(text, sender) {
+                const messagesContainer = document
+                    .getElementById("chatMessages")
+                    .querySelector(".space-y-3");
+                const messageDiv = document.createElement("div");
+                messageDiv.className = `flex ${
+                    sender === "user" ? "justify-end" : "justify-start"
+                }`;
+
+                const time = new Date().toLocaleTimeString("id-ID", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                });
+
+                messageDiv.innerHTML = `
+                <div class="max-w-xs px-3 py-2 rounded-lg ${
+                    sender === "user"
+                        ? "bg-blue-900 text-white shadow-md"
+                        : "bg-white text-gray-800 shadow-sm border"
+                }">
+                    <p class="text-sm">${text}</p>
+                    <p class="text-xs mt-1 ${
+                        sender === "user" ? "text-white/70" : "text-gray-500"
+                    }">${time}</p>
+                </div>
+            `;
+
+                messagesContainer.appendChild(messageDiv);
+                scrollToBottom();
+
+                // Hide quick replies after first user message
+                if (sender === "user" && messageCount === 0) {
+                    document.getElementById("quickReplies").style.display =
+                        "none";
+                    messageCount++;
+                }
+            }
+
+            function showTyping() {
+                const messagesContainer = document
+                    .getElementById("chatMessages")
+                    .querySelector(".space-y-3");
+                const typingDiv = document.createElement("div");
+                typingDiv.id = "typingIndicator";
+                typingDiv.className = "flex justify-start";
+                typingDiv.innerHTML = `
+                <div class="bg-white text-gray-800 px-3 py-2 rounded-lg shadow-sm border">
+                    <div class="flex space-x-1">
+                        <div class="w-2 h-2 bg-gray-400 rounded-full chat-bounce"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full chat-bounce" style="animation-delay: 0.1s"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full chat-bounce" style="animation-delay: 0.2s"></div>
+                    </div>
+                </div>
+            `;
+                messagesContainer.appendChild(typingDiv);
+                scrollToBottom();
+            }
+
+            function hideTyping() {
+                const typingIndicator =
+                    document.getElementById("typingIndicator");
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+
+            function getBotResponse(userMessage) {
+                let response =
+                    botResponses[
+                        Math.floor(Math.random() * botResponses.length)
+                    ];
+
+                const message = userMessage.toLowerCase();
+                if (message.includes("daftar")) {
+                    response =
+                        "Untuk mendaftar sebagai anggota SILUK, Anda perlu: 1) Mengisi formulir, 2) Menyiapkan dokumen, 3) Setor simpanan pokok, 4) Verifikasi data. Proses sangat mudah! 😊";
+                } else if (
+                    message.includes("simpanan") ||
+                    message.includes("pinjaman")
+                ) {
+                    response =
+                        "SILUK menyediakan berbagai produk simpanan (tabungan, deposito) dan pinjaman (konsumtif, produktif) dengan bunga kompetitif. Hubungi kami untuk konsultasi! 💰";
+                } else if (message.includes("laporan")) {
+                    response =
+                        "Laporan keuangan SILUK dipublikasikan setiap bulan dan dapat diakses di website. Kami berkomitmen untuk transparansi penuh! 📊";
+                } else if (
+                    message.includes("kantor") ||
+                    message.includes("cabang")
+                ) {
+                    response =
+                        "Kantor pusat SILUK di Jakarta, dengan cabang di Bandung, Surabaya, dan Medan. Kunjungi halaman kontak untuk alamat lengkap! 🏢";
+                } else if (message.includes("customer service")) {
+                    response =
+                        "Tim customer service SILUK siap melayani Anda di (021) 123-4567 atau email: cs@siluk.co.id. Kami online 24/7! 📞";
+                }
+
+                return response;
+            }
+
+            function sendMessage() {
+                const input = document.getElementById("messageInput");
+                const message = input.value.trim();
+
+                if (!message) return;
+
+                // Add user message
+                addMessage(message, "user");
+                input.value = "";
+
+                // Show typing indicator
+                showTyping();
+
+                // Simulate bot response delay
+                setTimeout(() => {
+                    hideTyping();
+                    const botResponse = getBotResponse(message);
+                    addMessage(botResponse, "bot");
+                    playNotificationSound();
+
+                    // Show notification if chat is closed
+                    if (!isOpen) {
+                        document
+                            .getElementById("notificationBadge")
+                            .classList.remove("hidden");
+                    }
+                }, 1000 + Math.random() * 2000);
+            }
+
+            function sendQuickReply(reply) {
+                addMessage(reply, "user");
+                document.getElementById("quickReplies").style.display = "none";
+                messageCount++;
+
+                // Show typing indicator
+                showTyping();
+
+                setTimeout(() => {
+                    hideTyping();
+                    const botResponse = getBotResponse(reply);
+                    addMessage(botResponse, "bot");
+                    playNotificationSound();
+                }, 1000 + Math.random() * 1500);
+            }
+
+            function handleKeyPress(event) {
+                if (event.key === "Enter") {
+                    sendMessage();
+                }
+            }
+
+            function scrollToBottom() {
+                const messagesContainer =
+                    document.getElementById("chatMessages");
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            function playNotificationSound() {
+                try {
+                    const audioContext = new (window.AudioContext ||
+                        window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+
+                    oscillator.frequency.value = 600;
+                    oscillator.type = "sine";
+
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(
+                        0.05,
+                        audioContext.currentTime + 0.01
+                    );
+                    gainNode.gain.exponentialRampToValueAtTime(
+                        0.01,
+                        audioContext.currentTime + 0.2
+                    );
+
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                } catch (error) {
+                    console.log("Audio notification not supported");
+                }
+            }
+        </script>
+    </body>
+</html>

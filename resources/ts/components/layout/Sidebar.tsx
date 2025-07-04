@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import {
     Home,
     Users,
-    FileText,
     Settings,
     ChevronLeft,
     ChevronRight,
+    ChevronDown,
+    Building,
+    Target,
 } from "lucide-react";
 import "../../../css/Sidebar.css";
 
@@ -16,12 +19,20 @@ interface SidebarProps {
     onToggle?: () => void;
 }
 
-interface MenuItem {
+interface SubMenuItem {
     id: string;
     label: string;
     icon: React.ReactNode;
     href: string;
+}
+
+interface MenuItem {
+    id: string;
+    label: string;
+    icon: React.ReactNode;
+    href?: string;
     badge?: string;
+    submenu?: SubMenuItem[];
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -31,6 +42,8 @@ const Sidebar: React.FC<SidebarProps> = ({
     onToggle,
 }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+    const location = useLocation();
 
     const menuItems: MenuItem[] = [
         {
@@ -40,24 +53,31 @@ const Sidebar: React.FC<SidebarProps> = ({
             href: "/dashboard",
         },
         {
-            id: "users",
-            label: "Users",
-            icon: <Users size={20} />,
-            href: "/users",
-            badge: "12",
+            id: "management",
+            label: "Management",
+            icon: <Building size={20} />,
+            submenu: [
+                {
+                    id: "users",
+                    label: "Users",
+                    icon: <Users size={18} />,
+                    href: "/users",
+                },
+                {
+                    id: "visimisi",
+                    label: "Visi Misi",
+                    icon: <Target size={18} />,
+                    href: "/visi-misi",
+                },
+                {
+                    id: "settings",
+                    label: "Settings",
+                    icon: <Settings size={18} />,
+                    href: "/settings",
+                },
+            ],
         },
-        {
-            id: "documents",
-            label: "Documents",
-            icon: <FileText size={20} />,
-            href: "/documents",
-        },
-        {
-            id: "settings",
-            label: "Settings",
-            icon: <Settings size={20} />,
-            href: "/settings",
-        },
+       
     ];
 
     useEffect(() => {
@@ -68,14 +88,132 @@ const Sidebar: React.FC<SidebarProps> = ({
         setIsCollapsed(!isCollapsed);
     };
 
+    const handleDropdownToggle = (itemId: string) => {
+        if (isCollapsed) return;
+        setOpenDropdown(openDropdown === itemId ? null : itemId);
+    };
+
+    const isSubmenuActive = (submenu: SubMenuItem[]) => {
+        return submenu.some((item) => location.pathname === item.href);
+    };
+
+    const renderMenuItem = (item: MenuItem) => {
+        const hasSubmenu = item.submenu && item.submenu.length > 0;
+        const isDropdownOpen = openDropdown === item.id;
+        const isActive = item.href
+            ? location.pathname === item.href
+            : hasSubmenu && isSubmenuActive(item.submenu!);
+
+        if (hasSubmenu) {
+            return (
+                <div key={item.id} className="sidebar-nav-dropdown">
+                    <div
+                        className={`
+                            sidebar-nav-item
+                            sidebar-nav-item--dropdown
+                            ${isCollapsed ? "sidebar-nav-item--collapsed" : ""}
+                            ${isActive ? "sidebar-nav-item--active" : ""}
+                            ${isDropdownOpen ? "sidebar-nav-item--open" : ""}
+                        `}
+                        onClick={() => handleDropdownToggle(item.id)}
+                    >
+                        <span className="sidebar-nav-icon">{item.icon}</span>
+
+                        {!isCollapsed && (
+                            <>
+                                <span className="sidebar-nav-label">
+                                    {item.label}
+                                </span>
+                                <span className="sidebar-nav-arrow">
+                                    <ChevronDown size={16} />
+                                </span>
+                            </>
+                        )}
+
+                        {/* Tooltip for collapsed state */}
+                        {isCollapsed && (
+                            <div className="sidebar-tooltip">{item.label}</div>
+                        )}
+                    </div>
+
+                    {/* Submenu */}
+                    {!isCollapsed && (
+                        <div
+                            className={`sidebar-submenu ${
+                                isDropdownOpen ? "sidebar-submenu--open" : ""
+                            }`}
+                        >
+                            {item.submenu!.map((subItem) => (
+                                <Link
+                                    key={subItem.id}
+                                    to={subItem.href}
+                                    className={`
+                                        sidebar-submenu-item
+                                        ${
+                                            location.pathname === subItem.href
+                                                ? "sidebar-submenu-item--active"
+                                                : ""
+                                        }
+                                    `}
+                                >
+                                    <span className="sidebar-submenu-icon">
+                                        {subItem.icon}
+                                    </span>
+                                    <span className="sidebar-submenu-label">
+                                        {subItem.label}
+                                    </span>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Regular menu item
+        return (
+            <Link
+                key={item.id}
+                to={item.href!}
+                className={`
+                    sidebar-nav-item
+                    ${isCollapsed ? "sidebar-nav-item--collapsed" : ""}
+                    ${isActive ? "sidebar-nav-item--active" : ""}
+                `}
+            >
+                <span className="sidebar-nav-icon">{item.icon}</span>
+
+                {!isCollapsed && (
+                    <>
+                        <span className="sidebar-nav-label">{item.label}</span>
+                        {item.badge && (
+                            <span className="sidebar-nav-badge">
+                                {item.badge}
+                            </span>
+                        )}
+                    </>
+                )}
+
+                {/* Tooltip for collapsed state */}
+                {isCollapsed && (
+                    <div className="sidebar-tooltip">
+                        {item.label}
+                        {item.badge && (
+                            <span className="sidebar-tooltip-badge">
+                                {item.badge}
+                            </span>
+                        )}
+                    </div>
+                )}
+            </Link>
+        );
+    };
+
     return (
         <>
             {/* Mobile Overlay */}
             {isOpen && (
-                <div
-                    className="sidebar-mobile-overlay"
-                    onClick={onToggle}
-                />
+                <div className="sidebar-mobile-overlay" onClick={onToggle} />
             )}
 
             {/* Sidebar */}
@@ -117,45 +255,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
                 {/* Navigation */}
                 <nav className="sidebar-nav">
-                    {menuItems.map((item) => (
-                        <a
-                            key={item.id}
-                            href={item.href}
-                            className={`
-                            sidebar-nav-item
-                            ${isCollapsed ? "sidebar-nav-item--collapsed" : ""}
-                        `}
-                        >
-                            <span className="sidebar-nav-icon">
-                                {item.icon}
-                            </span>
-
-                            {!isCollapsed && (
-                                <>
-                                    <span className="sidebar-nav-label">
-                                        {item.label}
-                                    </span>
-                                    {item.badge && (
-                                        <span className="sidebar-nav-badge">
-                                            {item.badge}
-                                        </span>
-                                    )}
-                                </>
-                            )}
-
-                            {/* Tooltip for collapsed state */}
-                            {isCollapsed && (
-                                <div className="sidebar-tooltip">
-                                    {item.label}
-                                    {item.badge && (
-                                        <span className="sidebar-tooltip-badge">
-                                            {item.badge}
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-                        </a>
-                    ))}
+                    {menuItems.map(renderMenuItem)}
                 </nav>
 
                 {/* Footer */}
@@ -184,4 +284,3 @@ const Sidebar: React.FC<SidebarProps> = ({
 };
 
 export default Sidebar;
-              

@@ -206,6 +206,21 @@
         0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
+.sidebar-nav-item--active {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border-color: #3b82f6;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3),
+        0 2px 4px -1px rgba(59, 130, 246, 0.2);
+    transform: translateX(4px);
+}
+
+.sidebar-nav-item--active:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    color: white;
+    transform: translateX(4px);
+}
+
 .sidebar-nav-item--collapsed {
     justify-content: center;
     gap: 0;
@@ -239,49 +254,121 @@
     box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
-/* Tooltip */
-.sidebar-tooltip {
-    position: absolute;
-    left: calc(100% + 12px);
-    top: 50%;
-    transform: translateY(-50%);
-    padding: 8px 12px;
-    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-    color: white;
-    font-size: 14px;
-    font-weight: 600;
-    border-radius: 8px;
-    opacity: 0;
-    pointer-events: none;
-    white-space: nowrap;
-    z-index: 50;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-        0 4px 6px -2px rgba(0, 0, 0, 0.05);
+/* Dropdown Navigation */
+.sidebar-nav-dropdown {
+    margin-bottom: 8px;
 }
 
-.sidebar-tooltip::before {
+.sidebar-nav-item--dropdown {
+    cursor: pointer;
+    user-select: none;
+}
+
+.sidebar-nav-item--dropdown:hover {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    color: #334155;
+    transform: translateX(4px);
+    border-color: rgba(148, 163, 184, 0.2);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.sidebar-nav-item--open .sidebar-nav-arrow {
+    transform: rotate(180deg);
+}
+
+.sidebar-nav-arrow {
+    margin-left: auto;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Submenu */
+.sidebar-submenu {
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 0 0 12px 12px;
+    margin-top: -8px;
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    border-top: none;
+}
+
+.sidebar-submenu--open {
+    max-height: 300px;
+    padding: 8px 0 12px 0;
+}
+
+.sidebar-submenu-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px 10px 48px;
+    margin: 4px 12px;
+    border-radius: 8px;
+    color: #64748b;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 12px;
+    font-weight: 500;
+    font-size: 14px;
+    border: 1px solid transparent;
+    position: relative;
+}
+
+.sidebar-submenu-item::before {
     content: "";
     position: absolute;
-    right: 100%;
+    left: 24px;
     top: 50%;
+    width: 6px;
+    height: 1px;
+    background: #cbd5e1;
     transform: translateY(-50%);
-    border: 6px solid transparent;
-    border-right-color: #1f2937;
 }
 
-.sidebar-nav-item:hover .sidebar-tooltip {
-    opacity: 1;
-    transform: translateY(-50%) translateX(4px);
+.sidebar-submenu-item:hover {
+    background: white;
+    color: #475569;
+    transform: translateX(4px);
+    border-color: rgba(148, 163, 184, 0.3);
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
 }
 
-.sidebar-tooltip-badge {
-    margin-left: 8px;
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 700;
+.sidebar-submenu-item--active {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border-color: #3b82f6;
+    box-shadow: 0 2px 4px -1px rgba(59, 130, 246, 0.3);
+    transform: translateX(4px);
+}
+
+.sidebar-submenu-item--active::before {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.sidebar-submenu-item--active:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    color: white;
+    transform: translateX(4px);
+}
+
+.sidebar-submenu-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+}
+
+.sidebar-submenu-label {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Footer */

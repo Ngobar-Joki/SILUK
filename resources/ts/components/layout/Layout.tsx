@@ -3,6 +3,8 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 import "../../../css/Layout.css";
 
+
+
 interface LayoutProps {
     children: React.ReactNode;
     title?: string;
@@ -54,7 +56,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
     }, [title]);
 
     const handleSidebarStateChange = useCallback(
-        (collapsed: boolean, mobileOpen: boolean) => {
+        (collapsed: boolean, _mobileOpen: boolean) => {
             setSidebarCollapsed(collapsed);
         },
         []
@@ -94,9 +96,8 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
             <main
                 className={`
           transition-all duration-300 pt-16 main-content
-          ${isMobile ? "lg:ml-64" : "lg:ml-64"}
           ${
-              sidebarCollapsed
+              sidebarCollapsed && !isMobile
                   ? "main-content--sidebar-collapsed"
                   : "main-content--sidebar-expanded"
           }

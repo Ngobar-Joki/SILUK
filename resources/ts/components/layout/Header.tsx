@@ -1,6 +1,15 @@
 import React, { useState } from "react";
-import { Menu, Bell, User, Settings, ChevronDown } from "lucide-react";
+import { Bell, User, Settings, ChevronDown } from "lucide-react";
 import "../../../css/Header.css";
+
+// Add type declaration for window.user
+interface User {
+    id: number;
+    name: string;
+    username: string;
+    role: string;
+    // Add other user properties as needed
+}
 
 interface HeaderProps {
     onMenuClick: () => void;
@@ -16,6 +25,10 @@ const Header: React.FC<HeaderProps> = ({
     const [profileOpen, setProfileOpen] = useState(false);
     const [notificationOpen, setNotificationOpen] = useState(false);
 
+    // Get user data - assuming it's available globally or you need to fetch it
+    // You may need to adjust this based on how user data is provided in your app
+    const userData: User | null = (window as any).user || null;
+
     return (
         <header
             className={`header ${
@@ -25,6 +38,19 @@ const Header: React.FC<HeaderProps> = ({
             } ${sidebarOpen ? "header--sidebar-open" : ""}`}
         >
             <div className="header-container">
+                {/* Mobile Menu Button - Only visible on mobile */}
+                <button
+                    onClick={onMenuClick}
+                    className="mobile-menu-button lg:hidden"
+                    aria-label="Toggle mobile menu"
+                >
+                    <div className="hamburger-icon">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </button>
+
                 {/* Right side - Notifications and Profile */}
                 <div className="header-actions">
                     {/* Notifications */}
@@ -100,9 +126,15 @@ const Header: React.FC<HeaderProps> = ({
                         {profileOpen && (
                             <div className="dropdown profile-dropdown">
                                 <div className="dropdown-header">
-                                    <p className="dropdown-title">Admin User</p>
+                                    <p className="dropdown-title">
+                                        {userData?.name || "User"}
+                                    </p>
                                     <p className="dropdown-subtitle">
-                                        admin@siluk.com
+                                        {userData?.username ||
+                                            "admin@siluk.com"}
+                                    </p>
+                                    <p className="dropdown-subtitle">
+                                        Role: {userData?.role || "User"}
                                     </p>
                                 </div>
                                 <button className="dropdown-item">
