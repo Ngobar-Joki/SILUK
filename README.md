@@ -6,7 +6,7 @@ A Laravel-based web application for SILUK system.
 
 Before installing this project, make sure you have the following installed on your system:
 
--   PHP >= 8.1
+-   PHP >= 8.2
 -   Composer
 -   Node.js & NPM
 -   MySQL/MariaDB

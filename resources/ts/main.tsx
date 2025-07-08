@@ -2,7 +2,8 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import AppMain from "./AppMain";
 import "../css/app.css";
-import "../../public/css/animations.css";
+import "../css/animations.css";
+import "../css/Sidebar.css";
 
 const container = document.getElementById("app");
 if (!container) {

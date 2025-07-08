@@ -1,0 +1,216 @@
+/* Chat Widget Styles */
+.chat-widget {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        sans-serif;
+}
+
+.chat-widget .animate-bounce {
+    animation: chatBounce 1.4s infinite;
+}
+
+.chat-widget .animate-ping {
+    animation: chatPing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes chatBounce {
+    0%,
+    60%,
+    100% {
+        transform: translateY(0);
+    }
+    30% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes chatPing {
+    75%,
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+/* Chat Widget Scrollbar */
+.chat-widget .overflow-y-auto::-webkit-scrollbar {
+    width: 4px;
+}
+
+.chat-widget .overflow-y-auto::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+}
+
+.chat-widget .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+}
+
+.chat-widget .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Dark mode support for chat widget */
+.dark-mode .chat-widget .bg-white {
+    background-color: #1f2937 !important;
+    color: #f9fafb;
+}
+
+.dark-mode .chat-widget .bg-gray-50 {
+    background-color: #111827 !important;
+}
+
+.dark-mode .chat-widget .text-gray-800 {
+    color: #f9fafb !important;
+}
+
+.dark-mode .chat-widget .text-gray-500 {
+    color: #9ca3af !important;
+}
+
+.dark-mode .chat-widget .border-gray-300 {
+    border-color: #374151 !important;
+}
+
+.dark-mode .chat-widget .border-t {
+    border-color: #374151 !important;
+}
+
+.dark-mode .chat-widget .shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark-mode .chat-widget .shadow-2xl {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 480px) {
+    .chat-widget .w-80 {
+        width: calc(100vw - 2rem);
+        max-width: 320px;
+        right: 1rem;
+    }
+
+    .chat-widget {
+        right: 1rem !important;
+        bottom: 1rem !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .chat-widget .h-96 {
+        height: calc(100vh - 200px);
+        max-height: 400px;
+    }
+}
+
+/* Improved button hover effects */
+.chat-widget button:hover {
+    transform: scale(1.05);
+    transition: all 0.2s ease-in-out;
+}
+
+.chat-widget .w-16.h-16:hover {
+    transform: scale(1.1) !important;
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+}
+
+/* Message animation */
+.chat-widget .message-enter {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: messageSlideIn 0.3s ease-out forwards;
+}
+
+@keyframes messageSlideIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Notification badge pulse */
+.chat-widget .animate-pulse {
+    animation: chatPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes chatPulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Session List Styles */
+.chat-widget .session-list-item {
+    transition: all 0.2s ease-in-out;
+}
+
+.chat-widget .session-list-item:hover {
+    transform: translateX(2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chat-widget .session-list-item.active {
+    background: linear-gradient(90deg, #ebf8ff 0%, #bee3f8 100%);
+    border-color: #3182ce;
+}
+
+.chat-widget .session-delete-btn {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.chat-widget .session-list-item:hover .session-delete-btn {
+    opacity: 1;
+}
+
+/* New Chat Button Animation */
+.chat-widget .new-chat-btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.chat-widget .new-chat-btn:hover {
+    transform: rotate(90deg) scale(1.1);
+}
+
+/* Session Header Buttons */
+.chat-widget .header-btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.chat-widget .header-btn:hover {
+    transform: scale(1.1);
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Session List Animation */
+.chat-widget .session-list {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Message Timestamp Enhancement */
+.chat-widget .message-timestamp {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.chat-widget .message-item:hover .message-timestamp {
+    opacity: 1;
+}

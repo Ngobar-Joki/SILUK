@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 
 // Import CSS untuk animasi custom
-import "../../../public/css/animations.css";
+import ChatWidget from "../components/ChatWidget";
+import "../../css/animations.css";
 
 interface ThemeContextType {
     theme: string;
@@ -1305,13 +1306,12 @@ const Welcome: React.FC = () => {
                 </div>
             </footer>
 
-            {/* Scroll to top button */}
-            <button
-                className={`scroll-to-top ${isScrolled ? "visible" : ""}`}
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            >
-                ↑
-            </button>
+            {/* Live Chat Widget */}
+            <ChatWidget
+                botName="Nito"
+                primaryColor="#1E40AF"
+                accentColor="#3B82F6"
+            />
         </div>
     );
 };
