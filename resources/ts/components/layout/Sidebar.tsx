@@ -9,6 +9,7 @@ import {
     ChevronDown,
     Building,
     Target,
+    Newspaper,
 } from "lucide-react";
 import "../../../css/Sidebar.css";
 
@@ -70,6 +71,18 @@ const Sidebar: React.FC<SidebarProps> = ({
                     href: "/visi-misi",
                 },
                 {
+                    id: "strukturOrganisasi",
+                    label: "Struktur Organisasi",
+                    icon: <Building size={18} />,
+                    href: "/struktur-organisasi",
+                },
+                {
+                    id: "berita",
+                    label: "Berita",
+                    icon: <Newspaper size={18} />,
+                    href: "/berita",
+                },
+                {
                     id: "settings",
                     label: "Settings",
                     icon: <Settings size={18} />,
@@ -77,7 +90,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                 },
             ],
         },
-       
     ];
 
     useEffect(() => {

@@ -19,10 +19,14 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'email',
+        'no_hp',
+        'alamat',
         'username',
         'password',
         'role',
         'accessibility_settings',
+        'verified',
     ];
 
     /**
@@ -40,11 +44,18 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'accessibility_settings' => 'array',
         ];
+    }
+    
+    public function verify_users()
+    {
+        return $this->hasMany(verify_user::class, 'user_id');
     }
 }

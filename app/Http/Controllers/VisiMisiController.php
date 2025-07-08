@@ -37,23 +37,36 @@ class VisiMisiController extends Controller
 
     public function index()
     {
-        // Ensure VisiMisi exists, create if not
-        $visiMisi = VisiMisi::firstOrCreate([], [
-            'judul' => 'Judul Default',
-            'deskripsi' => 'Deskripsi Default',
+        // Ensure both Visi and Misi entries exist
+        $visi = VisiMisi::firstOrCreate(['id' => 1], [
+            'judul' => 'Visi Lembaga',
+            'deskripsi' => 'Masukkan visi lembaga di sini',
         ]);
+        
+        $misi = VisiMisi::firstOrCreate(['id' => 2], [
+            'judul' => 'Misi Lembaga',
+            'deskripsi' => 'Masukkan misi lembaga di sini',
+        ]);
+        
+        $visiMisi = [$visi, $misi];
         
         return Inertia::render('VisiMisi', compact('visiMisi'));
     }
     
     public function fetchedVisiMisi()
     {
-        // Fetch the first VisiMisi record
-        $visiMisi = VisiMisi::first();
+        // Ensure both Visi and Misi entries exist
+        $visi = VisiMisi::firstOrCreate(['id' => 1], [
+            'judul' => 'Visi Lembaga',
+            'deskripsi' => 'Masukkan visi lembaga di sini',
+        ]);
         
-        if (!$visiMisi) {
-            return response()->json(['success' => false, 'message' => 'Data visi misi tidak ditemukan'], 404);
-        }
+        $misi = VisiMisi::firstOrCreate(['id' => 2], [
+            'judul' => 'Misi Lembaga',
+            'deskripsi' => 'Masukkan misi lembaga di sini',
+        ]);
+        
+        $visiMisi = [$visi, $misi];
 
         return response()->json(['success' => true, 'visiMisi' => $visiMisi]);
     }
