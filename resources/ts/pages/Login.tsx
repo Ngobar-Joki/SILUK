@@ -341,6 +341,24 @@ const Login: React.FC = () => {
                             </span>
                         </button>
                     </form>
+
+                    <div className="register-section">
+                        <p>
+                            Belum punya akun?{" "}
+                            <a href="/register" className="register-link">
+                                Daftar di sini
+                            </a>
+                        </p>
+                        <p>
+                            Belum menerima email verifikasi?{" "}
+                            <a
+                                href="/resend-verification"
+                                className="register-link"
+                            >
+                                Kirim ulang
+                            </a>
+                        </p>
+                    </div>
                 </div>
 
                 <div className="footer-text">
@@ -1378,6 +1396,31 @@ const Login: React.FC = () => {
                     100% {
                         transform: rotate(360deg);
                     }
+                }
+
+                .register-section {
+                    text-align: center;
+                    margin-top: 25px;
+                    padding-top: 20px;
+                    border-top: 1px solid #e1e5e9;
+                }
+
+                .register-section p {
+                    color: #666;
+                    font-size: 14px;
+                    margin: 8px 0;
+                }
+
+                .register-link {
+                    color: #2c5aa0;
+                    text-decoration: none;
+                    font-weight: 600;
+                    transition: all 0.3s ease;
+                }
+
+                .register-link:hover {
+                    color: #1e3c72;
+                    text-decoration: underline;
                 }
 
                 .footer-text {

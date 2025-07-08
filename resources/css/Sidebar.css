@@ -225,6 +225,7 @@
     justify-content: center;
     gap: 0;
     padding: 14px;
+    position: relative;
 }
 
 .sidebar-nav-icon {
@@ -474,4 +475,62 @@
 
 .sidebar-nav::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, #94a3b8, #64748b);
+}
+
+/* Tooltip styles for collapsed sidebar */
+.sidebar-tooltip {
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #1e293b;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-left: 12px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    pointer-events: none;
+}
+
+.sidebar-tooltip::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -6px;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 6px 6px 0;
+    border-color: transparent #1e293b transparent transparent;
+}
+
+.sidebar-tooltip-badge {
+    background: #3b82f6;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-left: 8px;
+}
+
+/* Show tooltip on hover when collapsed */
+.sidebar--collapsed .sidebar-nav-item:hover .sidebar-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(4px);
+}
+
+/* Hide tooltip when sidebar is expanded */
+.sidebar--expanded .sidebar-tooltip {
+    display: none;
 }

@@ -14,8 +14,14 @@ import Users from "./pages/Users";
 import Documents from "./pages/Documents";
 import SettingsPage from "./pages/Settings";
 import VisiMisiPage from "./operator/VisiMisi";
+import StrukturOrganisasiPage from "./operator/StrukturOrganisasi";
+import BeritaPage from "./operator/Berita";
+import Register from "./pages/Register";
+import ResendVerificationPage from "./pages/ResendVerificationPage";
+
 import { AccessibilityProvider } from "./contexts/AccessibilityContext";
 import AccessibilityWidget from "./components/AccessibilityWidget";
+
 
 const App: React.FC = () => {
     return (
@@ -30,6 +36,12 @@ const App: React.FC = () => {
                         <Route path="/documents" element={<Documents />} />
                         <Route path="/settings" element={<SettingsPage />} />
                         <Route path="/visi-misi" element={<VisiMisiPage />} />
+                        <Route path="/struktur-organisasi" element={<StrukturOrganisasiPage />} />
+                        <Route path="/berita" element={<BeritaPage />} />
+                        <Route path="/register" element={<Register />} />
+                        <Route path="/resend-verification" element={<ResendVerificationPage />} />
+
+                        {/* Add more routes as needed */}
 
                         {/* Redirects for legacy routes */}
 

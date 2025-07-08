@@ -16,6 +16,21 @@ Route::get('login', [AuthController::class, 'login'])->name('login');
 Route::post('login', [AuthController::class, 'postLogin'])->name('postLogin');
 Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 
+// Registration routes
+Route::get('register', [AuthController::class, 'register'])->name('register');
+Route::post('register', [AuthController::class, 'postRegister'])->name('postRegister');
+
+// Email verification routes
+Route::get('verify/{token}', [AuthController::class, 'verify'])->name('verify');
+Route::get('resend-verification', function () {
+    return inertia('ResendVerificationPage');
+})->name('resend.verification.page');
+Route::post('resend-verification', [AuthController::class, 'resendVerification'])->name('resend.verification');
+
+// Debug routes (hanya untuk development)
+Route::get('debug/email/test', [App\Http\Controllers\EmailDebugController::class, 'testEmail'])->name('debug.email.test');
+Route::get('debug/email/config', [App\Http\Controllers\EmailDebugController::class, 'checkEmailConfig'])->name('debug.email.config');
+
 // Accessibility routes (available for all authenticated users)
 Route::middleware(['auth'])->prefix('api/accessibility')->group(function () {
     Route::post('/save', [App\Http\Controllers\AccessibilityController::class, 'saveSettings']);
@@ -23,10 +38,6 @@ Route::middleware(['auth'])->prefix('api/accessibility')->group(function () {
     Route::delete('/delete', [App\Http\Controllers\AccessibilityController::class, 'deleteSettings']);
 });
 
-// Accessibility statistics (admin only)
-Route::middleware(['auth', 'role:operator'])->group(function () {
-    Route::get('/api/accessibility/statistics', [App\Http\Controllers\AccessibilityController::class, 'getStatistics']);
-});
 
 
 Route::middleware(['auth', 'role:operator'])->group(function () {
@@ -41,6 +52,21 @@ Route::middleware(['auth', 'role:operator'])->group(function () {
     Route::delete('/visi-misi/{id}', [App\Http\Controllers\VisiMisiController::class, 'destroy'])->name('visi-misi.destroy');
     Route::get('/visi-misi/fetched', [App\Http\Controllers\VisiMisiController::class, 'fetchedVisiMisi'])->name('visi-misi.fetched');
   
+    // StrukturOrganisasi routes
+    Route::get('/struktur-organisasi', [App\Http\Controllers\StrukturOrganisasiController::class, 'index'])->name('struktur-organisasi');
+    Route::post('/struktur-organisasi', [App\Http\Controllers\StrukturOrganisasiController::class, 'store'])->name('struktur-organisasi.store');
+    Route::put('/struktur-organisasi/{id}', [App\Http\Controllers\StrukturOrganisasiController::class, 'update'])->name('struktur-organisasi.update');
+    Route::delete('/struktur-organisasi/{id}', [App\Http\Controllers\StrukturOrganisasiController::class, 'destroy'])->name('struktur-organisasi.destroy');
+    Route::get('/struktur-organisasi/fetched', [App\Http\Controllers\StrukturOrganisasiController::class, 'fetchedStrukturOrganisasi'])->name('struktur-organisasi.fetched');
+
+    // Berita routes
+    Route::get('/berita', [App\Http\Controllers\BeritaController::class, 'index'])->name('berita');
+    Route::post('/berita', [App\Http\Controllers\BeritaController::class, 'store'])->name('berita.store');
+    Route::put('/berita/{id}', [App\Http\Controllers\BeritaController::class, 'update'])->name('berita.update');
+    Route::delete('/berita/{id}', [App\Http\Controllers\BeritaController::class, 'destroy'])->name('berita.destroy');
+    Route::get('/berita/fetched', [App\Http\Controllers\BeritaController::class, 'fetchedBerita'])->name('berita.fetched');
+
+    Route::get('/api/accessibility/statistics', [App\Http\Controllers\AccessibilityController::class, 'getStatistics']);
 });
 
 Route::middleware(['auth', 'role:pendaftar'])->group(function () {
