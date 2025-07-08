@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import Layout from "../components/layout/Layout";
-import { Edit, Save, X, Trash2, Plus, Calendar, Image, Newspaper } from "lucide-react";
+import {
+    Edit,
+    Save,
+    X,
+    Trash2,
+    Plus,
+    Calendar,
+    Image,
+    Newspaper,
+    AlertTriangle,
+} from "lucide-react";
 import axios from "axios";
 import { format, parseISO } from "date-fns";
 
@@ -21,9 +31,13 @@ const BeritaPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ text: "", type: "" });
     const [isAnimating, setIsAnimating] = useState(false);
-    
+
+    // New state for delete confirmation modal
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<number | null>(null);
+
     const [newBerita, setNewBerita] = useState<Partial<Berita>>({
-        tanggal: format(new Date(), 'yyyy-MM-dd'),
+        tanggal: format(new Date(), "yyyy-MM-dd"),
         Judul_berita: "",
         isi_berita: "",
     });
@@ -50,7 +64,7 @@ const BeritaPage: React.FC = () => {
 
     const resetForm = () => {
         setNewBerita({
-            tanggal: format(new Date(), 'yyyy-MM-dd'),
+            tanggal: format(new Date(), "yyyy-MM-dd"),
             Judul_berita: "",
             isi_berita: "",
         });
@@ -66,14 +80,14 @@ const BeritaPage: React.FC = () => {
         id: number | null = null
     ) => {
         const { name, value } = e.target;
-        
+
         if (id === null) {
             // Creating new berita
-            setNewBerita(prev => ({ ...prev, [name]: value }));
+            setNewBerita((prev) => ({ ...prev, [name]: value }));
         } else {
             // Editing existing berita
-            setBeritaList(prev =>
-                prev.map(item =>
+            setBeritaList((prev) =>
+                prev.map((item) =>
                     item.id === id ? { ...item, [name]: value } : item
                 )
             );
@@ -125,20 +139,20 @@ const BeritaPage: React.FC = () => {
             setMessage({ text: "Gambar berita wajib diunggah", type: "error" });
             return;
         }
-        
+
         setLoading(true);
-        
+
         const formData = new FormData();
-        formData.append('tanggal', newBerita.tanggal || "");
-        formData.append('Judul_berita', newBerita.Judul_berita || "");
-        formData.append('isi_berita', newBerita.isi_berita || "");
-        formData.append('foto', selectedFile);
+        formData.append("tanggal", newBerita.tanggal || "");
+        formData.append("Judul_berita", newBerita.Judul_berita || "");
+        formData.append("isi_berita", newBerita.isi_berita || "");
+        formData.append("foto", selectedFile);
 
         try {
             const response = await axios.post("/berita", formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
+                    "Content-Type": "multipart/form-data",
+                },
             });
 
             if (response.data.success) {
@@ -155,8 +169,10 @@ const BeritaPage: React.FC = () => {
         } catch (error: any) {
             console.error("Error creating berita:", error);
             setMessage({
-                text: error.response?.data?.message || "Terjadi kesalahan saat menyimpan data",
-                type: "error"
+                text:
+                    error.response?.data?.message ||
+                    "Terjadi kesalahan saat menyimpan data",
+                type: "error",
             });
         } finally {
             setLoading(false);
@@ -170,23 +186,23 @@ const BeritaPage: React.FC = () => {
             return;
         }
 
-        const berita = beritaList.find(item => item.id === id);
+        const berita = beritaList.find((item) => item.id === id);
         if (!berita) return;
 
         setLoading(true);
-        
+
         const formData = new FormData();
-        formData.append('tanggal', berita.tanggal);
-        formData.append('Judul_berita', berita.Judul_berita);
-        formData.append('isi_berita', berita.isi_berita);
-        formData.append('foto', selectedFile);
+        formData.append("tanggal", berita.tanggal);
+        formData.append("Judul_berita", berita.Judul_berita);
+        formData.append("isi_berita", berita.isi_berita);
+        formData.append("foto", selectedFile);
 
         try {
             const response = await axios.post(`/berita/${id}`, formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'X-HTTP-Method-Override': 'PUT'
-                }
+                    "Content-Type": "multipart/form-data",
+                    "X-HTTP-Method-Override": "PUT",
+                },
             });
 
             if (response.data.success) {
@@ -203,8 +219,10 @@ const BeritaPage: React.FC = () => {
         } catch (error: any) {
             console.error("Error updating berita:", error);
             setMessage({
-                text: error.response?.data?.message || "Terjadi kesalahan saat menyimpan data",
-                type: "error"
+                text:
+                    error.response?.data?.message ||
+                    "Terjadi kesalahan saat menyimpan data",
+                type: "error",
             });
         } finally {
             setLoading(false);
@@ -212,13 +230,17 @@ const BeritaPage: React.FC = () => {
     };
 
     const handleDelete = async (id: number) => {
-        if (!confirm("Apakah Anda yakin ingin menghapus berita ini?")) {
-            return;
-        }
+        // Instead of using window.confirm, show the custom modal
+        setItemToDelete(id);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!itemToDelete) return;
 
         setLoading(true);
         try {
-            const response = await axios.delete(`/berita/${id}`);
+            const response = await axios.delete(`/berita/${itemToDelete}`);
 
             if (response.data.success) {
                 setMessage({ text: response.data.message, type: "success" });
@@ -232,28 +254,42 @@ const BeritaPage: React.FC = () => {
         } catch (error: any) {
             console.error("Error deleting berita:", error);
             setMessage({
-                text: error.response?.data?.message || "Terjadi kesalahan saat menghapus data",
-                type: "error"
+                text:
+                    error.response?.data?.message ||
+                    "Terjadi kesalahan saat menghapus data",
+                type: "error",
             });
         } finally {
             setLoading(false);
+            setShowDeleteModal(false);
+            setItemToDelete(null);
         }
     };
 
-    const renderBeritaForm = (berita: Partial<Berita> | null, isNew = false) => {
+    const cancelDelete = () => {
+        setShowDeleteModal(false);
+        setItemToDelete(null);
+    };
+
+    const renderBeritaForm = (
+        berita: Partial<Berita> | null,
+        isNew = false
+    ) => {
         const data = berita || newBerita;
         const id = berita?.id || null;
-        
+
         return (
-            <form 
-                onSubmit={isNew ? handleSubmitCreate : (e) => handleSubmitEdit(e, id!)}
+            <form
+                onSubmit={
+                    isNew ? handleSubmitCreate : (e) => handleSubmitEdit(e, id!)
+                }
                 className="space-y-6"
             >
                 {/* Tanggal */}
                 <div className="relative">
                     <input
                         type="date"
-                        id={`tanggal-${id || 'new'}`}
+                        id={`tanggal-${id || "new"}`}
                         name="tanggal"
                         value={data.tanggal || ""}
                         onChange={(e) => handleChange(e, id)}
@@ -261,18 +297,18 @@ const BeritaPage: React.FC = () => {
                         required
                     />
                     <label
-                        htmlFor={`tanggal-${id || 'new'}`}
+                        htmlFor={`tanggal-${id || "new"}`}
                         className="absolute left-4 -top-3 text-sm font-medium text-blue-600 bg-white px-2 rounded-full transition-all duration-200"
                     >
                         Tanggal Berita
                     </label>
                 </div>
-                
+
                 {/* Judul Berita */}
                 <div className="relative">
                     <input
                         type="text"
-                        id={`judul-${id || 'new'}`}
+                        id={`judul-${id || "new"}`}
                         name="Judul_berita"
                         value={data.Judul_berita || ""}
                         onChange={(e) => handleChange(e, id)}
@@ -281,17 +317,17 @@ const BeritaPage: React.FC = () => {
                         required
                     />
                     <label
-                        htmlFor={`judul-${id || 'new'}`}
+                        htmlFor={`judul-${id || "new"}`}
                         className="absolute left-4 -top-3 text-sm font-medium text-blue-600 bg-white px-2 rounded-full peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4 peer-placeholder-shown:text-lg peer-focus:-top-3 peer-focus:text-blue-600 peer-focus:text-sm transition-all duration-200"
                     >
                         Judul Berita
                     </label>
                 </div>
-                
+
                 {/* Isi Berita */}
                 <div className="relative">
                     <textarea
-                        id={`isi-${id || 'new'}`}
+                        id={`isi-${id || "new"}`}
                         name="isi_berita"
                         value={data.isi_berita || ""}
                         onChange={(e) => handleChange(e, id)}
@@ -301,50 +337,56 @@ const BeritaPage: React.FC = () => {
                         required
                     />
                     <label
-                        htmlFor={`isi-${id || 'new'}`}
+                        htmlFor={`isi-${id || "new"}`}
                         className="absolute left-4 -top-3 text-sm font-medium text-blue-600 bg-white px-2 rounded-full peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4 peer-placeholder-shown:text-lg peer-focus:-top-3 peer-focus:text-blue-600 peer-focus:text-sm transition-all duration-200"
                     >
                         Isi Berita
                     </label>
                 </div>
-                
+
                 {/* Image Upload */}
                 <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-6 transition-all duration-200 hover:border-blue-400 bg-white/70 backdrop-blur-sm">
-                    <input 
+                    <input
                         type="file"
                         ref={fileInputRef}
-                        id={`foto-${id || 'new'}`}
+                        id={`foto-${id || "new"}`}
                         name="foto"
                         accept="image/jpeg,image/png,image/jpg,image/gif"
                         className="hidden"
                         onChange={handleFileChange}
                     />
-                    
-                    <label 
-                        htmlFor={`foto-${id || 'new'}`}
+
+                    <label
+                        htmlFor={`foto-${id || "new"}`}
                         className="flex flex-col items-center justify-center cursor-pointer"
                     >
                         {previewUrl ? (
                             <div className="relative w-full">
-                                <img 
-                                    src={previewUrl} 
-                                    alt="Preview" 
-                                    className="w-full h-64 object-cover rounded-lg shadow-md mb-4" 
+                                <img
+                                    src={previewUrl}
+                                    alt="Preview"
+                                    className="w-full h-64 object-cover rounded-lg shadow-md mb-4"
                                 />
                                 <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg opacity-0 hover:opacity-100 transition-opacity">
-                                    <p className="text-white font-medium">Klik untuk mengganti gambar</p>
+                                    <p className="text-white font-medium">
+                                        Klik untuk mengganti gambar
+                                    </p>
                                 </div>
                             </div>
                         ) : (
                             <div className="flex flex-col items-center justify-center py-8">
                                 <Image className="w-16 h-16 text-gray-400 mb-4" />
-                                <p className="text-lg font-medium text-gray-700 mb-2">Klik untuk unggah gambar</p>
-                                <p className="text-sm text-gray-500">JPG, PNG, atau GIF (Maks. 2MB)</p>
+                                <p className="text-lg font-medium text-gray-700 mb-2">
+                                    Klik untuk unggah gambar
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                    JPG, PNG, atau GIF (Maks. 2MB)
+                                </p>
                             </div>
                         )}
                     </label>
                 </div>
-                
+
                 {/* Action buttons */}
                 <div className="flex gap-3 justify-end pt-6">
                     <button
@@ -379,7 +421,9 @@ const BeritaPage: React.FC = () => {
 
     const renderBeritaCard = (berita: Berita) => {
         const isEditing = editingId === berita.id;
-        const formattedDate = berita.tanggal ? format(parseISO(berita.tanggal), 'dd MMMM yyyy') : '';
+        const formattedDate = berita.tanggal
+            ? format(parseISO(berita.tanggal), "dd MMMM yyyy")
+            : "";
 
         return (
             <div
@@ -439,14 +483,14 @@ const BeritaPage: React.FC = () => {
                         {/* Image display */}
                         {berita.foto && (
                             <div className="relative w-full h-64 rounded-xl overflow-hidden shadow-lg">
-                                <img 
-                                    src={`/storage/${berita.foto}`} 
-                                    alt={berita.Judul_berita} 
-                                    className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500" 
+                                <img
+                                    src={`/storage/${berita.foto}`}
+                                    alt={berita.Judul_berita}
+                                    className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
                                 />
                             </div>
                         )}
-                        
+
                         {/* Content */}
                         <div className="group/content">
                             <div className="prose prose-lg max-w-none text-gray-700 leading-relaxed">
@@ -493,18 +537,21 @@ const BeritaPage: React.FC = () => {
                                         Kelola Berita
                                     </h1>
                                     <p className="text-blue-100 text-lg">
-                                        Tambahkan, edit, dan hapus berita dengan mudah
+                                        Tambahkan, edit, dan hapus berita dengan
+                                        mudah
                                     </p>
                                 </div>
                             </div>
-                            
+
                             {!isCreating && !editingId && (
                                 <button
                                     onClick={handleCreate}
                                     className="group flex items-center gap-2 px-6 py-3 bg-white text-blue-700 rounded-xl hover:bg-blue-50 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
                                 >
                                     <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-                                    <span className="font-medium">Tambah Berita</span>
+                                    <span className="font-medium">
+                                        Tambah Berita
+                                    </span>
                                 </button>
                             )}
                         </div>
@@ -565,7 +612,8 @@ const BeritaPage: React.FC = () => {
                                         Belum ada berita
                                     </h3>
                                     <p className="text-gray-600 text-lg">
-                                        Berita belum tersedia. Silakan tambahkan berita terlebih dahulu.
+                                        Berita belum tersedia. Silakan tambahkan
+                                        berita terlebih dahulu.
                                     </p>
                                 </div>
                             )}
@@ -573,10 +621,89 @@ const BeritaPage: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    {/* Backdrop with blur effect */}
+                    <div
+                        className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm transition-opacity"
+                        onClick={cancelDelete}
+                    ></div>
+
+                    {/* Modal Content */}
+                    <div
+                        className="relative bg-white rounded-2xl max-w-md w-full mx-4 overflow-hidden shadow-2xl transform transition-all"
+                        style={{
+                            animation:
+                                "modal-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                        }}
+                    >
+                        {/* Gradient header */}
+                        <div className="bg-gradient-to-r from-red-500 to-pink-500 px-6 py-4 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-white/10"></div>
+                            <div className="relative flex items-center gap-3">
+                                <div className="p-2 bg-white/20 rounded-full">
+                                    <AlertTriangle className="w-6 h-6 text-white" />
+                                </div>
+                                <h3 className="text-white text-lg font-semibold">
+                                    Konfirmasi Hapus
+                                </h3>
+                            </div>
+                        </div>
+
+                        {/* Modal body */}
+                        <div className="p-6">
+                            <div className="mb-6">
+                                <p className="text-gray-700 text-base">
+                                    Apakah Anda yakin ingin menghapus berita
+                                    ini? Tindakan ini tidak dapat dibatalkan.
+                                </p>
+                            </div>
+
+                            {/* Buttons */}
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    className="group/btn px-4 py-2 border-2 border-gray-300 rounded-xl text-gray-700 font-medium transition-all hover:bg-gray-100 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
+                                    onClick={cancelDelete}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <X className="w-4 h-4 group-hover/btn:rotate-90 transition-transform" />
+                                        <span>Batal</span>
+                                    </div>
+                                </button>
+                                <button
+                                    type="button"
+                                    className="group/btn px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-xl font-medium transition-all hover:shadow-lg hover:shadow-red-500/30 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                    onClick={confirmDelete}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Trash2 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+                                        <span>Hapus Berita</span>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <style>{`
+                /* Modal animations */
+                @keyframes modal-pop {
+                    0% {
+                        opacity: 0;
+                        transform: scale(0.95) translateY(20px);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: scale(1) translateY(0);
+                    }
+                }
+            `}</style>
         </Layout>
     );
 };
 
 export default BeritaPage;
-
-

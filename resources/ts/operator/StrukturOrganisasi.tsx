@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import Layout from "../components/layout/Layout";
-import { Edit, Save, X, Upload, Image, Network, Plus } from "lucide-react";
+import {
+    Edit,
+    Save,
+    X,
+    Upload,
+    Image,
+    Network,
+    Plus,
+    AlertTriangle,
+    Trash2,
+} from "lucide-react";
 import axios from "axios";
 
 interface StrukturOrganisasi {
@@ -23,6 +33,10 @@ const StrukturOrganisasiPage: React.FC<{
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isAdding, setIsAdding] = useState(false);
+
+    // New state for delete confirmation modal
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<number | null>(null);
 
     // Use a single file input reference instead of two
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -215,17 +229,19 @@ const StrukturOrganisasiPage: React.FC<{
     };
 
     const handleDelete = async (id: number) => {
-        if (
-            !window.confirm(
-                "Apakah Anda yakin ingin menghapus struktur organisasi ini?"
-            )
-        ) {
-            return;
-        }
+        // Instead of using window.confirm, show the custom modal
+        setItemToDelete(id);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!itemToDelete) return;
 
         setLoading(true);
         try {
-            const response = await axios.delete(`/struktur-organisasi/${id}`);
+            const response = await axios.delete(
+                `/struktur-organisasi/${itemToDelete}`
+            );
 
             if (response.data.success) {
                 setMessage({ text: response.data.message, type: "success" });
@@ -246,7 +262,14 @@ const StrukturOrganisasiPage: React.FC<{
             });
         } finally {
             setLoading(false);
+            setShowDeleteModal(false);
+            setItemToDelete(null);
         }
+    };
+
+    const cancelDelete = () => {
+        setShowDeleteModal(false);
+        setItemToDelete(null);
     };
 
     const renderStrukturOrganisasiCard = (
@@ -673,11 +696,90 @@ const StrukturOrganisasiPage: React.FC<{
                     )}
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    {/* Backdrop with blur effect */}
+                    <div
+                        className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm transition-opacity"
+                        onClick={cancelDelete}
+                    ></div>
+
+                    {/* Modal Content */}
+                    <div
+                        className="relative bg-white rounded-2xl max-w-md w-full mx-4 overflow-hidden shadow-2xl transform transition-all"
+                        style={{
+                            animation:
+                                "modal-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                        }}
+                    >
+                        {/* Gradient header */}
+                        <div className="bg-gradient-to-r from-red-500 to-pink-500 px-6 py-4 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-white/10"></div>
+                            <div className="relative flex items-center gap-3">
+                                <div className="p-2 bg-white/20 rounded-full">
+                                    <AlertTriangle className="w-6 h-6 text-white" />
+                                </div>
+                                <h3 className="text-white text-lg font-semibold">
+                                    Konfirmasi Hapus
+                                </h3>
+                            </div>
+                        </div>
+
+                        {/* Modal body */}
+                        <div className="p-6">
+                            <div className="mb-6">
+                                <p className="text-gray-700 text-base">
+                                    Apakah Anda yakin ingin menghapus struktur
+                                    organisasi ini? Tindakan ini tidak dapat
+                                    dibatalkan.
+                                </p>
+                            </div>
+
+                            {/* Buttons */}
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    className="group/btn px-4 py-2 border-2 border-gray-300 rounded-xl text-gray-700 font-medium transition-all hover:bg-gray-100 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
+                                    onClick={cancelDelete}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <X className="w-4 h-4 group-hover/btn:rotate-90 transition-transform" />
+                                        <span>Batal</span>
+                                    </div>
+                                </button>
+                                <button
+                                    type="button"
+                                    className="group/btn px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-xl font-medium transition-all hover:shadow-lg hover:shadow-red-500/30 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                    onClick={confirmDelete}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Trash2 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+                                        <span>Hapus Data</span>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <style >{`
+                /* Modal animations */
+                @keyframes modal-pop {
+                    0% {
+                        opacity: 0;
+                        transform: scale(0.95) translateY(20px);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: scale(1) translateY(0);
+                    }
+                }
+            `}</style>
         </Layout>
     );
 };
 
 export default StrukturOrganisasiPage;
-
-
-
