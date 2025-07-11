@@ -44,6 +44,9 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+    const [user, setUser] = useState<{ name: string; email: string } | null>(
+        null
+    );
     const location = useLocation();
 
     const menuItems: MenuItem[] = [
@@ -62,7 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     id: "users",
                     label: "Users",
                     icon: <Users size={18} />,
-                    href: "/users",
+                    href: "/daftar-user",
                 },
                 {
                     id: "visimisi",
@@ -95,6 +98,28 @@ const Sidebar: React.FC<SidebarProps> = ({
     useEffect(() => {
         onStateChange?.(isCollapsed, isOpen);
     }, [isCollapsed, isOpen, onStateChange]);
+
+    // Fetch user data saat mount
+    useEffect(() => {
+        fetch("/api/user", {
+            credentials: "same-origin",
+            headers: {
+                Accept: "application/json",
+            },
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.success && data.user) {
+                    setUser({
+                        name: data.user.name,
+                        email: data.user.email,
+                    });
+                }
+            })
+            .catch(() => {
+                setUser(null);
+            });
+    }, []);
 
     const handleDesktopToggle = () => {
         setIsCollapsed(!isCollapsed);
@@ -278,13 +303,24 @@ const Sidebar: React.FC<SidebarProps> = ({
                         }`}
                     >
                         <div className="sidebar-avatar">
-                            <span className="sidebar-avatar-text">JD</span>
+                            <span className="sidebar-avatar-text">
+                                {/* Inisial dari nama user */}
+                                {user && user.name
+                                    ? user.name
+                                          .split(" ")
+                                          .map((n) => n[0])
+                                          .join("")
+                                          .toUpperCase()
+                                    : "U"}
+                            </span>
                         </div>
                         {!isCollapsed && (
                             <div className="sidebar-user-info">
-                                <p className="sidebar-user-name">John Doe</p>
+                                <p className="sidebar-user-name">
+                                    {user ? user.name : "Loading..."}
+                                </p>
                                 <p className="sidebar-user-email">
-                                    john@example.com
+                                    {user ? user.email : ""}
                                 </p>
                             </div>
                         )}

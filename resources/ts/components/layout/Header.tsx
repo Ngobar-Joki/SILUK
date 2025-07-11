@@ -1,15 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Bell, User, Settings, ChevronDown } from "lucide-react";
 import "../../../css/Header.css";
-
-// Add type declaration for window.user
-interface User {
-    id: number;
-    name: string;
-    username: string;
-    role: string;
-    // Add other user properties as needed
-}
 
 interface HeaderProps {
     onMenuClick: () => void;
@@ -25,9 +16,31 @@ const Header: React.FC<HeaderProps> = ({
     const [profileOpen, setProfileOpen] = useState(false);
     const [notificationOpen, setNotificationOpen] = useState(false);
 
-    // Get user data - assuming it's available globally or you need to fetch it
-    // You may need to adjust this based on how user data is provided in your app
-    const userData: User | null = (window as any).user || null;
+    const [user, setUser] = useState<{
+        name: string;
+        email: string;
+        role: string;
+    } | null>(null);
+
+    useEffect(() => {
+        fetch("/api/user", {
+            credentials: "same-origin",
+            headers: {
+                Accept: "application/json",
+            },
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.success && data.user) {
+                    setUser({
+                        name: data.user.name,
+                        email: data.user.email,
+                        role: data.user.role,
+                    });
+                }
+            })
+            .catch(() => setUser(null));
+    }, []);
 
     return (
         <header
@@ -127,14 +140,13 @@ const Header: React.FC<HeaderProps> = ({
                             <div className="dropdown profile-dropdown">
                                 <div className="dropdown-header">
                                     <p className="dropdown-title">
-                                        {userData?.name || "User"}
+                                        {user ? user.name : "User"}
                                     </p>
                                     <p className="dropdown-subtitle">
-                                        {userData?.username ||
-                                            "admin@siluk.com"}
+                                        {user ? user.email : "admin@siluk.com"}
                                     </p>
                                     <p className="dropdown-subtitle">
-                                        Role: {userData?.role || "User"}
+                                        Role: {user ? user.role : "User"}
                                     </p>
                                 </div>
                                 <button className="dropdown-item">

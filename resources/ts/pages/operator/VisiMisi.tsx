@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Layout from "../components/layout/Layout";
+import Layout from "../../components/layout/Layout";
 import { Edit, Save, X, Eye, Sparkles, Target, Lightbulb } from "lucide-react";
 import axios from "axios";
 

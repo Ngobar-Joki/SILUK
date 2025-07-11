@@ -20,6 +20,9 @@
         "noUnusedParameters": true,
         "noFallthroughCasesInSwitch": true
     },
-    "include": ["resources/js/**/*", "resources/ts/**/*"],
-    
+    "include": [
+        "resources/js/**/*",
+        "resources/ts/**/*",
+        "resources/js/types/**/*"
+    ]
 }

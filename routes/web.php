@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\PendaftarController;
+
 
 
 // Main entry point for the SPA
@@ -38,13 +38,15 @@ Route::middleware(['auth'])->prefix('api/accessibility')->group(function () {
     Route::delete('/delete', [App\Http\Controllers\AccessibilityController::class, 'deleteSettings']);
 });
 
-
+// API untuk mengambil data user yang sedang login
+Route::middleware(['auth'])->get('/api/user', [AuthController::class, 'getUser'])->name('api.user');
 
 Route::middleware(['auth', 'role:operator'])->group(function () {
 
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+  
     // VisiMisi routes
     Route::get('/visi-misi', [App\Http\Controllers\VisiMisiController::class, 'index'])->name('visi-misi');
     Route::post('/visi-misi', [App\Http\Controllers\VisiMisiController::class, 'store'])->name('visi-misi.store');
@@ -66,10 +68,18 @@ Route::middleware(['auth', 'role:operator'])->group(function () {
     Route::delete('/berita/{id}', [App\Http\Controllers\BeritaController::class, 'destroy'])->name('berita.destroy');
     Route::get('/berita/fetched', [App\Http\Controllers\BeritaController::class, 'fetchedBerita'])->name('berita.fetched');
 
+
+    // DaftarUser routes
+Route::get('/daftar-user', [App\Http\Controllers\DaftarUserController::class, 'index'])->name('daftar-user');
+Route::post('/daftar-user', [App\Http\Controllers\DaftarUserController::class, 'store'])->name('daftar-user.store');
+Route::put('/daftar-user/{id}', [App\Http\Controllers\DaftarUserController::class, 'update'])->name('daftar-user.update');
+Route::delete('/daftar-user/{id}', [App\Http\Controllers\DaftarUserController::class, 'destroy'])->name('daftar-user.destroy');
+Route::get('/daftar-user/fetched', [App\Http\Controllers\DaftarUserController::class, 'fetchedUsers'])->name('daftar-user.fetched');
+
     Route::get('/api/accessibility/statistics', [App\Http\Controllers\AccessibilityController::class, 'getStatistics']);
 });
 
 Route::middleware(['auth', 'role:pendaftar'])->group(function () {
-    Route::get('/pendaftar', [PendaftarController::class, 'index'])->name('pendaftar');
+    // Route::get('/pendaftar', [PendaftarController::class, 'index'])->name('pendaftar');
  
 });

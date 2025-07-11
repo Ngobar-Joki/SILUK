@@ -321,4 +321,20 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+    // API untuk mengambil data user yang sedang login
+    public function getUser(Request $request)
+    {
+        $user = $request->user();
+        if ($user) {
+            return response()->json([
+                'success' => true,
+                'user' => $user
+            ]);
+        }
+        return response()->json([
+            'success' => false,
+            'message' => 'User tidak ditemukan'
+        ], 404);
+    }
 }
