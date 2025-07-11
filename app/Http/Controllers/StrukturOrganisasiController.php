@@ -38,7 +38,7 @@ class StrukturOrganisasiController extends Controller
     public function index()
     {
         $strukturOrganisasi = StrukturOrganisasi::all();
-        return Inertia::render('StrukturOrganisasi', compact('strukturOrganisasi'));
+        return Inertia::render('operator/StrukturOrganisasi', compact('strukturOrganisasi'));
     }
 
     public function fetchedStrukturOrganisasi()

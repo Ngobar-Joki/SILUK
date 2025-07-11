@@ -43,13 +43,26 @@ class BeritaController extends Controller
     public function index()
     {
         $beritas = Berita::all();
-        return Inertia::render('Berita', compact('beritas'));
+        return Inertia::render('operator/Berita', compact('beritas'));
     }
 
-    public function fetchedBerita()
+    public function fetchedBerita(Request $request)
     {
         try {
-            $beritas = Berita::all();
+            $search = $request->input('search', '');
+            $pageSize = (int) $request->input('pageSize', 5);
+
+            $query = Berita::query();
+
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('Judul_berita', 'like', "%$search%")
+                        ->orWhere('isi_berita', 'like', "%$search%");
+                });
+            }
+
+            $beritas = $query->orderBy('tanggal', 'desc')->paginate($pageSize);
+
             return response()->json(['success' => true, 'beritas' => $beritas]);
         } catch (\Exception $e) {
             Log::error('Error fetching berita', [

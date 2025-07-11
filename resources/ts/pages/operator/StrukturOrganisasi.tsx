@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import Layout from "../components/layout/Layout";
+import Layout from "../../components/layout/Layout";
 import {
     Edit,
     Save,
@@ -765,7 +765,7 @@ const StrukturOrganisasiPage: React.FC<{
                 </div>
             )}
 
-            <style >{`
+            <style>{`
                 /* Modal animations */
                 @keyframes modal-pop {
                     0% {

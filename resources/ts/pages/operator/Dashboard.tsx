@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import Layout from "../components/layout/Layout";
-import AccessibilityDashboard from "../components/AccessibilityDashboard";
+import Layout from "../../components/layout/Layout";
+import AccessibilityDashboard from "../../components/AccessibilityDashboard";
 
 const Dashboard: React.FC = () => {
     const [activeTab, setActiveTab] = useState("overview");
