@@ -3,13 +3,14 @@ import { Link, useLocation } from "react-router-dom";
 import {
     Home,
     Users,
-    Settings,
+    // Settings,
     ChevronLeft,
     ChevronRight,
     ChevronDown,
     Building,
     Target,
     Newspaper,
+    
 } from "lucide-react";
 import "../../../css/Sidebar.css";
 
@@ -85,14 +86,15 @@ const Sidebar: React.FC<SidebarProps> = ({
                     icon: <Newspaper size={18} />,
                     href: "/berita",
                 },
-                {
-                    id: "settings",
-                    label: "Settings",
-                    icon: <Settings size={18} />,
-                    href: "/settings",
+                 {
+                    id: "profile",
+                    label: "Profile",
+                    icon: <Users size={20} />,
+                    href: "/profile-user",
                 },
             ],
         },
+       
     ];
 
     useEffect(() => {

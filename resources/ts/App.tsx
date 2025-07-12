@@ -9,9 +9,8 @@ import {
 } from "react-router-dom";
 import Welcome from "./pages/welcome";
 import Login from "./pages/Login";
-import Documents from "./pages/Documents";
-import SettingsPage from "./pages/Settings";
 import Register from "./pages/Register";
+import ProfileUser from "./pages/ProfileUser";
 
 import Dashboard from "./pages/operator/Dashboard";
 import DaftarUserPage from "./pages/operator/DaftarUser";
@@ -37,8 +36,8 @@ const App: React.FC = () => {
                             path="/daftar-user"
                             element={<DaftarUserPage />}
                         />
-                        <Route path="/documents" element={<Documents />} />
-                        <Route path="/settings" element={<SettingsPage />} />
+                       
+                      
                         <Route path="/visi-misi" element={<VisiMisiPage />} />
                         <Route
                             path="/struktur-organisasi"
@@ -46,6 +45,10 @@ const App: React.FC = () => {
                         />
                         <Route path="/berita" element={<BeritaPage />} />
                         <Route path="/register" element={<Register />} />
+                        <Route
+                            path="/profile-user"
+                            element={<ProfileUser />}
+                        />
                         <Route
                             path="/resend-verification"
                             element={<ResendVerificationPage />}

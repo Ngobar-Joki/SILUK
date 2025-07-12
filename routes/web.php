@@ -38,6 +38,13 @@ Route::middleware(['auth'])->prefix('api/accessibility')->group(function () {
     Route::delete('/delete', [App\Http\Controllers\AccessibilityController::class, 'deleteSettings']);
 });
 
+//profile user routes
+    Route::get('/profile-user', [App\Http\Controllers\ProfileUserController::class, 'index'])->name('profile-user');
+    Route::get('/profile-user/fetched', [App\Http\Controllers\ProfileUserController::class, 'fetchProfileUser'])->name('profile-user.fetched');
+    Route::put('/profile-user', [App\Http\Controllers\ProfileUserController::class, 'update'])->name('profile-user.update');
+
+
+
 // API untuk mengambil data user yang sedang login
 Route::middleware(['auth'])->get('/api/user', [AuthController::class, 'getUser'])->name('api.user');
 
