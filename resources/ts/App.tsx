@@ -11,6 +11,7 @@ import Welcome from "./pages/welcome";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ProfileUser from "./pages/ProfileUser";
+import ProfilePendaftar from "./pages/ProfilePendaftar";
 
 import Dashboard from "./pages/operator/Dashboard";
 import DaftarUserPage from "./pages/operator/DaftarUser";
@@ -48,6 +49,10 @@ const App: React.FC = () => {
                         <Route
                             path="/profile-user"
                             element={<ProfileUser />}
+                        />
+                        <Route
+                            path="/profile-pendaftar"
+                            element={<ProfilePendaftar />}
                         />
                         <Route
                             path="/resend-verification"
