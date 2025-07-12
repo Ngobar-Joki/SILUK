@@ -340,6 +340,24 @@ const Login: React.FC = () => {
                                 )}
                             </span>
                         </button>
+
+                        {/* Tombol Kembali ke Beranda */}
+                        <a href="/" className="back-home-button">
+                            <span className="button-content">
+                                <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                >
+                                    <line x1="19" y1="12" x2="5" y2="12" />
+                                    <polyline points="12 19 5 12 12 5" />
+                                </svg>
+                                Kembali ke Beranda
+                            </span>
+                        </a>
                     </form>
 
                     <div className="register-section">
@@ -1490,6 +1508,43 @@ const Login: React.FC = () => {
                     .money-particle {
                         font-size: 14px;
                     }
+                }
+
+                /* Add this to your existing style block */
+                .back-home-button {
+                    display: block;
+                    width: 100%;
+                    height: 50px;
+                    border: 2px solid #2c5aa0;
+                    border-radius: 14px;
+                    margin-top: 12px;
+                    background: transparent;
+                    cursor: pointer;
+                    text-decoration: none;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                .back-home-button .button-content {
+                    color: #2c5aa0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    height: 100%;
+                    font-size: 14px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                .back-home-button:hover {
+                    background: rgba(44, 90, 160, 0.1);
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(44, 90, 160, 0.2);
+                }
+
+                .back-home-button:active {
+                    transform: translateY(0);
                 }
             `}</style>
         </div>

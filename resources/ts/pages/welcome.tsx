@@ -232,6 +232,145 @@ const Welcome: React.FC = () => {
         };
     }, [isMenuOpen]);
 
+    // Ubah inisialisasi state user menjadi null
+    const [user, setUser] = useState<{ name: string; role: string } | null>(
+        null
+    );
+    const [isLoading, setIsLoading] = useState(true);
+    const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+
+    // Tambahkan fungsi untuk mengecek status autentikasi
+    const checkAuthStatus = async () => {
+        try {
+            const response = await fetch("/api/user", {
+                headers: {
+                    Accept: "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    setUser({
+                        name: data.user.name,
+                        role: data.user.role,
+                    });
+                } else {
+                    setUser(null);
+                }
+            } else {
+                setUser(null);
+            }
+        } catch (error) {
+            console.error("Auth check error:", error);
+            setUser(null);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Panggil checkAuthStatus saat komponen dimount
+    useEffect(() => {
+        checkAuthStatus();
+    }, []);
+
+    // Update handleLogout untuk memanggil checkAuthStatus
+    const handleLogout = async () => {
+        try {
+            const csrf = document
+                .querySelector('meta[name="csrf-token"]')
+                ?.getAttribute("content");
+
+            const response = await fetch("/logout", {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": csrf || "",
+                    Accept: "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                setProfileDropdownOpen(false);
+                setUser(null);
+                window.location.href = "/";
+            } else {
+                const error = await response.json();
+                throw new Error(error.message || "Logout failed");
+            }
+        } catch (error) {
+            console.error("Logout error:", error);
+            alert("Logout gagal. Silakan coba lagi.");
+        }
+    };
+
+    // Render kondisional untuk tombol login/profile
+    const renderAuthButton = () => {
+        if (isLoading) {
+            return null; // atau loading spinner jika diinginkan
+        }
+
+        if (!user) {
+            return (
+                <li>
+                    <a href="/login" className="login-button">
+                        Masuk
+                    </a>
+                </li>
+            );
+        }
+
+        return (
+            <li className="profile-menu relative">
+                <button
+                    className="profile-toggle flex items-center"
+                    onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                >
+                    <span className="profile-avatar w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
+                        {user.name.charAt(0)}
+                    </span>
+                </button>
+                {profileDropdownOpen && (
+                    <div className="profile-dropdown absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50">
+                        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                {user.name}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {user.role}
+                            </p>
+                        </div>
+                        <a
+                            href="/profile"
+                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                            <span className="mr-2">👤</span>
+                            Profile
+                        </a>
+                        <a
+                            href="/settings"
+                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                            <span className="mr-2">⚙️</span>
+                            Settings
+                        </a>
+                        <div className="border-t border-gray-200 dark:border-gray-700"></div>
+                        <button
+                            onClick={handleLogout}
+                            className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                            <span className="mr-2">🚪</span>
+                            Keluar
+                        </button>
+                    </div>
+                )}
+            </li>
+        );
+    };
+
     return (
         <div
             className={`min-h-screen ${
@@ -273,6 +412,7 @@ const Welcome: React.FC = () => {
                         {/* Navigasi desktop */}
                         <nav className="desktop-nav">
                             <ul>
+                                {/* ...existing nav items... */}
                                 <li
                                     className={
                                         activeSection === "home" ? "active" : ""
@@ -365,11 +505,8 @@ const Welcome: React.FC = () => {
                                         Berita
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="/login" className="login-button">
-                                        Masuk
-                                    </a>
-                                </li>
+                                {/* Ganti tombol Masuk dengan dropdown jika login sebagai pendaftar */}
+                                {renderAuthButton()}
                                 <li>
                                     <button
                                         className="theme-toggle-button"
@@ -399,6 +536,7 @@ const Welcome: React.FC = () => {
                     {/* Navigasi mobile */}
                     <div className={`mobile-nav ${isMenuOpen ? "open" : ""}`}>
                         <ul>
+                            {/* ...existing mobile nav items... */}
                             <li>
                                 <a
                                     href="#home"
@@ -453,14 +591,61 @@ const Welcome: React.FC = () => {
                                     Berita
                                 </a>
                             </li>
-                            <li>
-                                <a
-                                    href="/login"
-                                    className="mobile-login-button"
-                                >
-                                    Masuk
-                                </a>
-                            </li>
+                            {/* Ganti tombol Masuk dengan dropdown jika login sebagai pendaftar */}
+                            {!user ? (
+                                <li>
+                                    <a
+                                        href="/login"
+                                        className="mobile-login-button"
+                                    >
+                                        Masuk
+                                    </a>
+                                </li>
+                            ) : user.role === "pendaftar" ? (
+                                <li className="profile-menu-mobile">
+                                    <button
+                                        className="flex items-center w-full px-4 py-2"
+                                        onClick={() =>
+                                            setProfileDropdownOpen(
+                                                !profileDropdownOpen
+                                            )
+                                        }
+                                    >
+                                        <span className="profile-avatar w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium mr-3">
+                                            {user.name.charAt(0)}
+                                        </span>
+                                        <span className="flex-grow text-left">
+                                            {user.name}
+                                        </span>
+                                    </button>
+                                    {profileDropdownOpen && (
+                                        <div className="profile-dropdown-mobile bg-gray-50 dark:bg-gray-800 py-2">
+                                            <a
+                                                href="/profile"
+                                                className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            >
+                                                <span className="mr-2">👤</span>
+                                                Profile
+                                            </a>
+                                            <a
+                                                href="/settings"
+                                                className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            >
+                                                <span className="mr-2">⚙️</span>
+                                                Settings
+                                            </a>
+                                            <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+                                            <button
+                                                onClick={handleLogout}
+                                                className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            >
+                                                <span className="mr-2">🚪</span>
+                                                Keluar
+                                            </button>
+                                        </div>
+                                    )}
+                                </li>
+                            ) : null}
                             <li className="theme-toggle-mobile">
                                 <button
                                     onClick={toggleTheme}

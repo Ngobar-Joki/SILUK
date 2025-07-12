@@ -428,7 +428,7 @@ const StrukturOrganisasiPage: React.FC<{
                             <button
                                 type="button"
                                 onClick={handleCancel}
-                                className="group/cancel flex items-center gap-2 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium"
+                                 className="relative z-10 group/cancel flex items-center gap-2 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium"
                             >
                                 <X className="w-4 h-4 group-hover/cancel:rotate-90 transition-transform" />
                                 Batal

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Bell, User, Settings, ChevronDown } from "lucide-react";
+import { Bell, User, ChevronDown } from "lucide-react";
 import "../../../css/Header.css";
 
 interface HeaderProps {
@@ -149,14 +149,16 @@ const Header: React.FC<HeaderProps> = ({
                                         Role: {user ? user.role : "User"}
                                     </p>
                                 </div>
-                                <button className="dropdown-item">
+                                <button
+                                    className="dropdown-item"
+                                    onClick={() => {
+                                        window.location.href = "/profile-user";
+                                    }}
+                                >
                                     <User className="dropdown-item-icon" />
                                     Profil
                                 </button>
-                                <button className="dropdown-item">
-                                    <Settings className="dropdown-item-icon" />
-                                    Pengaturan
-                                </button>
+
                                 <hr className="dropdown-divider" />
                                 <button
                                     className="dropdown-item logout-button"
