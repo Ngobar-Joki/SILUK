@@ -43,7 +43,10 @@ Route::middleware(['auth'])->prefix('api/accessibility')->group(function () {
     Route::get('/profile-user/fetched', [App\Http\Controllers\ProfileUserController::class, 'fetchProfileUser'])->name('profile-user.fetched');
     Route::put('/profile-user', [App\Http\Controllers\ProfileUserController::class, 'update'])->name('profile-user.update');
 
-
+//profile pendaftar routes
+Route::get('/profile-pendaftar', [App\Http\Controllers\ProfilePendaftarController::class, 'index'])->name('profile-pendaftar');
+Route::get('/profile-pendaftar/fetched', [App\Http\Controllers\ProfilePendaftarController::class, 'fetchProfilePendaftar'])->name('profile-pendaftar.fetched');
+Route::put('/profile-pendaftar', [App\Http\Controllers\ProfilePendaftarController::class, 'update'])->name('profile-pendaftar.update');
 
 // API untuk mengambil data user yang sedang login
 Route::middleware(['auth'])->get('/api/user', [AuthController::class, 'getUser'])->name('api.user');

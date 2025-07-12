@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import ChatWidget from "../components/ChatWidget";
 import "../../css/animations.css";
 
+
 interface ThemeContextType {
     theme: string;
     toggleTheme: () => void;
@@ -324,45 +325,103 @@ const Welcome: React.FC = () => {
         }
 
         return (
-            <li className="profile-menu relative">
+            <li style={{
+                position: 'relative',
+                listStyle: 'none'
+            }}>
                 <button
-                    className="profile-toggle flex items-center"
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '0.5rem'
+                    }}
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                 >
-                    <span className="profile-avatar w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
+                    <span style={{
+                        width: '2rem',
+                        height: '2rem',
+                        borderRadius: '50%',
+                        backgroundColor: '#2563eb',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.875rem',
+                        fontWeight: '500'
+                    }}>
                         {user.name.charAt(0)}
                     </span>
                 </button>
                 {profileDropdownOpen && (
-                    <div className="profile-dropdown absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50">
-                        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    <div style={{
+                        position: 'absolute',
+                        right: 0,
+                        marginTop: '0.5rem',
+                        width: '12rem',
+                        backgroundColor: theme === 'dark' ? '#1f2937' : 'white',
+                        borderRadius: '0.5rem',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                        padding: '0.5rem 0',
+                        zIndex: 50
+                    }}>
+                        <div style={{
+                            padding: '0.75rem 1rem',
+                            borderBottom: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`
+                        }}>
+                            <p style={{
+                                fontSize: '0.875rem',
+                                fontWeight: '500',
+                                color: theme === 'dark' ? 'white' : '#111827'
+                            }}>
                                 {user.name}
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                            <p style={{
+                                fontSize: '0.75rem',
+                                color: theme === 'dark' ? '#9ca3af' : '#6b7280'
+                            }}>
                                 {user.role}
                             </p>
                         </div>
                         <a
-                            href="/profile"
-                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            href="/profile-pendaftar"
+                            style={{
+                                display: 'block',
+                                padding: '0.5rem 1rem',
+                                fontSize: '0.875rem',
+                                color: theme === 'dark' ? 'white' : '#111827',
+                                textDecoration: 'none'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = theme === 'dark' ? '#374151' : '#f3f4f6'}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
-                            <span className="mr-2">👤</span>
+                            <span style={{marginRight: '0.5rem'}}>👤</span>
                             Profile
                         </a>
-                        <a
-                            href="/settings"
-                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                            <span className="mr-2">⚙️</span>
-                            Settings
-                        </a>
-                        <div className="border-t border-gray-200 dark:border-gray-700"></div>
+                        
+                        <div style={{
+                            borderTop: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`,
+                            margin: '0.5rem 0'
+                        }}></div>
                         <button
                             onClick={handleLogout}
-                            className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            style={{
+                                display: 'block',
+                                width: '100%',
+                                textAlign: 'left',
+                                padding: '0.5rem 1rem',
+                                fontSize: '0.875rem',
+                                color: '#dc2626',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = theme === 'dark' ? '#374151' : '#f3f4f6'}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
-                            <span className="mr-2">🚪</span>
+                            <span style={{marginRight: '0.5rem'}}>🔓</span>
                             Keluar
                         </button>
                     </div>
@@ -443,6 +502,20 @@ const Welcome: React.FC = () => {
                                         Pendaftaran
                                     </a>
                                 </li>
+                                {user && ( // Only show Pengajuan when logged in
+                                    <li>
+                                        <a
+                                            href="/pengajuan"
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.25rem'
+                                            }}
+                                        >
+                                            Pengajuan
+                                        </a>
+                                    </li>
+                                )}
                                 <li
                                     className={
                                         activeSection === "laporan"
@@ -536,7 +609,6 @@ const Welcome: React.FC = () => {
                     {/* Navigasi mobile */}
                     <div className={`mobile-nav ${isMenuOpen ? "open" : ""}`}>
                         <ul>
-                            {/* ...existing mobile nav items... */}
                             <li>
                                 <a
                                     href="#home"
@@ -555,6 +627,20 @@ const Welcome: React.FC = () => {
                                     Pendaftaran
                                 </a>
                             </li>
+                            {user && ( // Only show Pengajuan when logged in
+                                <li>
+                                    <a
+                                        href="/pengajuan" 
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.25rem'
+                                        }}
+                                    >
+                                        Pengajuan
+                                    </a>
+                                </li>
+                            )}
                             <li>
                                 <a
                                     href="#laporan"
@@ -601,51 +687,112 @@ const Welcome: React.FC = () => {
                                         Masuk
                                     </a>
                                 </li>
-                            ) : user.role === "pendaftar" ? (
-                                <li className="profile-menu-mobile">
+                            ) : (
+                                <li style={{
+                                    position: 'relative',
+                                    listStyle: 'none'
+                                }}>
                                     <button
-                                        className="flex items-center w-full px-4 py-2"
-                                        onClick={() =>
-                                            setProfileDropdownOpen(
-                                                !profileDropdownOpen
-                                            )
-                                        }
+                                        style={{
+                                            display: 'flex', 
+                                            alignItems: 'center',
+                                            width: '100%',
+                                            padding: '0.5rem 1rem',
+                                            background: 'none',
+                                            border: 'none',
+                                            cursor: 'pointer'
+                                        }}
+                                        onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                                     >
-                                        <span className="profile-avatar w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium mr-3">
+                                        <span style={{
+                                            width: '2rem',
+                                            height: '2rem',
+                                            borderRadius: '50%',
+                                            backgroundColor: '#2563eb',
+                                            color: 'white',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '0.875rem',
+                                            fontWeight: '500',
+                                            marginRight: '0.75rem'
+                                        }}>
                                             {user.name.charAt(0)}
                                         </span>
-                                        <span className="flex-grow text-left">
+                                        <span style={{
+                                            fontSize: '0.875rem',
+                                            color: theme === 'dark' ? 'white' : '#111827'
+                                        }}>
                                             {user.name}
                                         </span>
                                     </button>
                                     {profileDropdownOpen && (
-                                        <div className="profile-dropdown-mobile bg-gray-50 dark:bg-gray-800 py-2">
+                                        <div style={{
+                                            backgroundColor: theme === 'dark' ? '#1f2937' : 'white',
+                                            padding: '0.5rem 0',
+                                            width: '100%'
+                                        }}>
+                                            <div style={{
+                                                padding: '0.75rem 1rem',
+                                                borderBottom: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`
+                                            }}>
+                                                <p style={{
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: '500',
+                                                    color: theme === 'dark' ? 'white' : '#111827'
+                                                }}>
+                                                    {user.name}
+                                                </p>
+                                                <p style={{
+                                                    fontSize: '0.75rem',
+                                                    color: theme === 'dark' ? '#9ca3af' : '#6b7280'
+                                                }}>
+                                                    {user.role}
+                                                </p>
+                                            </div>
                                             <a
                                                 href="/profile"
-                                                className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                style={{
+                                                    display: 'block',
+                                                    padding: '0.5rem 1rem',
+                                                    fontSize: '0.875rem',
+                                                    color: theme === 'dark' ? 'white' : '#111827',
+                                                    textDecoration: 'none'
+                                                }}
+                                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = theme === 'dark' ? '#374151' : '#f3f4f6'}
+                                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                             >
-                                                <span className="mr-2">👤</span>
+                                                <span style={{marginRight: '0.5rem'}}>👤</span>
                                                 Profile
                                             </a>
-                                            <a
-                                                href="/settings"
-                                                className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            >
-                                                <span className="mr-2">⚙️</span>
-                                                Settings
-                                            </a>
-                                            <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+                                            
+                                            <div style={{
+                                                borderTop: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`,
+                                                margin: '0.5rem 0'
+                                            }}></div>
                                             <button
                                                 onClick={handleLogout}
-                                                className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                style={{
+                                                    display: 'block',
+                                                    width: '100%',
+                                                    textAlign: 'left',
+                                                    padding: '0.5rem 1rem',
+                                                    fontSize: '0.875rem',
+                                                    color: '#dc2626',
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    cursor: 'pointer'
+                                                }}
+                                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = theme === 'dark' ? '#374151' : '#f3f4f6'}
+                                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                             >
-                                                <span className="mr-2">🚪</span>
+                                                <span style={{marginRight: '0.5rem'}}>🔓</span>
                                                 Keluar
                                             </button>
                                         </div>
                                     )}
                                 </li>
-                            ) : null}
+                            )}
                             <li className="theme-toggle-mobile">
                                 <button
                                     onClick={toggleTheme}
