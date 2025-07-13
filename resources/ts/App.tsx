@@ -18,6 +18,9 @@ import DaftarUserPage from "./pages/operator/DaftarUser";
 import VisiMisiPage from "./pages/operator/VisiMisi";
 import StrukturOrganisasiPage from "./pages/operator/StrukturOrganisasi";
 import BeritaPage from "./pages/operator/Berita";
+import DaftarPermohonan from "./pages/operator/DaftarPermohonan";
+
+import PengajuanPermohonan from "./pages/pendaftar/Permohonan";
 
 
 import ResendVerificationPage from "./pages/ResendVerificationPage";
@@ -49,6 +52,14 @@ const App: React.FC = () => {
                         <Route
                             path="/profile-user"
                             element={<ProfileUser />}
+                        />
+                        <Route
+                            path="/permohonan"
+                            element={<PengajuanPermohonan />}
+                        />
+                        <Route
+                            path="/daftar-permohonan"
+                            element={<DaftarPermohonan />}
                         />
                         <Route
                             path="/profile-pendaftar"

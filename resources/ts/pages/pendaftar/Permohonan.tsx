@@ -10,168 +10,215 @@ declare global {
     }
 }
 
-interface UserProfile {
-    id: number;
-    name: string;
-    email: string;
-    no_hp: string;
-    alamat: string;
-    username: string;
-    accessibility_settings: any;
+interface Permohonan {
+    id?: number;
+    susunan_penggurus: string;
+    surat_nonpengurus: string;
+    surat_kuasa: string;
+    bukti_modal: string;
+    ktp: string;
+    user_id: number;
+    created_at?: string;
+    status?: string;
 }
 
-interface FormData {
-    name: string;
-    email: string;
-    no_hp: string;
-    alamat: string;
-    username: string;
-    password: string;
-    accessibility_settings: any;
-}
+const initialForm: Omit<Permohonan, "id" | "user"> = {
+    susunan_penggurus: "",
+    surat_nonpengurus: "",
+    surat_kuasa: "",
+    bukti_modal: "",
+    ktp: "",
+    user_id: 0,
+    status: "pending", // default status
+};
 
-const ProfilePendaftar: React.FC = () => {
+const Permohonan: React.FC = () => {
     const [loading, setLoading] = useState(false);
-    const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [formData, setFormData] = useState<FormData>({
-        name: "",
-        email: "",
-        no_hp: "",
-        alamat: "",
-        username: "",
-        password: "",
-        accessibility_settings: {},
-    });
+    const [permohonans, setPermohonans] = useState<Permohonan[]>([]);
+    const [formData, setFormData] =
+        useState<Omit<Permohonan, "id" | "user">>(initialForm);
+    const [fileInputs, setFileInputs] = useState<
+        Partial<Record<keyof typeof initialForm, File | null>>
+    >({});
     const [alert, setAlert] = useState<{
         text: string;
         type: "success" | "error" | "";
-    }>({
-        text: "",
-        type: "",
-    });
+    }>({ text: "", type: "" });
+    const [errors, setErrors] = useState<
+        Partial<Record<keyof typeof initialForm, string>>
+    >({});
+    const [editingId, setEditingId] = useState<number | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
 
     const showToast = (type: "success" | "error", message: string) => {
         setAlert({ text: message, type });
-        if (window.toast) {
-            window.toast[type](message);
-        }
+        if (window.toast) window.toast[type](message);
         setTimeout(() => setAlert({ text: "", type: "" }), 3000);
     };
 
+    // Fetch permohonan list
     useEffect(() => {
+        fetchPermohonans();
+    }, []);
+
+    const fetchPermohonans = async () => {
         setLoading(true);
-        axios
-            .get("/profile-pendaftar/fetched")
-            .then((res) => {
-                if (res.data.success && res.data.user) {
-                    setProfile(res.data.user);
-                    setFormData({
-                        name: res.data.user.name,
-                        email: res.data.user.email,
-                        no_hp: res.data.user.no_hp,
-                        alamat: res.data.user.alamat,
-                        username: res.data.user.username,
-                        password: "",
-                        accessibility_settings:
-                            res.data.user.accessibility_settings || {},
-                    });
-                }
-            })
-            .catch((error) => {
-                console.error("Error fetching profile:", error);
-                showToast("error", "Gagal mengambil data profil");
-            })
-            .finally(() => setLoading(false));
+        try {
+            const res = await axios.get("/permohonan/fetched");
+            if (res.data && Array.isArray(res.data.permohonans)) {
+                setPermohonans(res.data.permohonans);
+            } else {
+                showToast(
+                    "error",
+                    res.data?.message || "Gagal mengambil data permohonan"
+                );
+            }
+        } catch (e: any) {
+            showToast(
+                "error",
+                e?.response?.data?.message
+                    ? `Gagal mengambil data permohonan: ${e.response.data.message}`
+                    : "Gagal mengambil data permohonan"
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch user_id for form (assume from /profile-pendaftar/fetched)
+    useEffect(() => {
+        axios.get("/profile-pendaftar/fetched").then((res) => {
+            if (res.data?.user?.id) {
+                setFormData((prev) => ({ ...prev, user_id: res.data.user.id }));
+            }
+        });
     }, []);
 
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
-        const { name, value } = e.target;
-        // Only allow digits for no_hp
-        if (name === "no_hp") {
-            const numericValue = value.replace(/\D/g, "");
-            setFormData((prev) => ({
-                ...prev,
-                [name]: numericValue,
-            }));
+        const { name, value, type, files } = e.target as HTMLInputElement;
+        if (type === "file" && files && files.length > 0) {
+            setFileInputs((prev) => ({ ...prev, [name]: files[0] }));
+            setFormData((prev) => ({ ...prev, [name]: files[0].name }));
         } else {
             setFormData((prev) => ({
                 ...prev,
                 [name]: value,
             }));
         }
-    };
-
-    // Prevent non-digit keypress for no_hp
-    const handleNoHpKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (
-            !/[0-9]/.test(e.key) &&
-            e.key !== "Backspace" &&
-            e.key !== "Delete"
-        ) {
-            e.preventDefault();
-        }
+        setErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-
+        setErrors({});
         try {
-            const response = await fetch("/profile-pendaftar", {
-                method: "PUT", // ubah dari POST ke PUT
+            const url = editingId ? `/permohonan/${editingId}` : "/permohonan";
+            const method = editingId ? "put" : "post";
+            const form = new FormData();
+            form.append("user_id", String(formData.user_id));
+            form.append("status", "pending"); // always send as pending
+            [
+                "susunan_penggurus",
+                "surat_nonpengurus",
+                "surat_kuasa",
+                "bukti_modal",
+                "ktp",
+            ].forEach((field) => {
+                if (fileInputs[field as keyof typeof initialForm]) {
+                    form.append(
+                        field,
+                        fileInputs[field as keyof typeof initialForm]!
+                    );
+                } else if (!editingId) {
+                    form.append(field, "");
+                }
+            });
+
+            // For update, if file not changed, don't send it (handled by backend)
+            const res = await axios({
+                url,
+                method,
+                data: form,
                 headers: {
-                    "Content-Type": "application/json",
                     "X-CSRF-TOKEN":
                         document
                             .querySelector('meta[name="csrf-token"]')
                             ?.getAttribute("content") || "",
+                    "Content-Type": "multipart/form-data",
                 },
-                body: JSON.stringify(formData),
             });
-
-            const result = await response.json();
-
-            if (result.success) {
-                showToast("success", "Profil berhasil diperbarui");
-                setProfile((prev) => ({
-                    ...prev!,
-                    ...formData,
-                }));
-            } else {
+            if (res.data.success) {
                 showToast(
-                    "error",
-                    result.message || "Gagal memperbarui profil"
+                    "success",
+                    editingId
+                        ? "Permohonan berhasil diperbarui"
+                        : "Permohonan berhasil ditambahkan"
                 );
+                handleReset(); // reset form & file input
+                fetchPermohonans(); // refresh table
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000); // beri jeda agar alert sempat tampil
+            } else {
+                showToast("error", res.data.message || "Gagal menyimpan data");
             }
-        } catch (error) {
-            console.error("Error updating profile:", error);
-            showToast("error", "Terjadi kesalahan saat memperbarui profil");
+        } catch (err: any) {
+            if (err.response?.status === 422 && err.response.data.errors) {
+                setErrors(err.response.data.errors);
+                showToast("error", "Validasi gagal");
+            } else {
+                showToast("error", "Terjadi kesalahan saat menyimpan data");
+            }
         } finally {
             setLoading(false);
         }
     };
 
+    // const handleEdit = (permohonan: Permohonan) => {
+    //     setFormData({
+    //         susunan_penggurus: permohonan.susunan_penggurus,
+    //         surat_nonpengurus: permohonan.surat_nonpengurus,
+    //         surat_kuasa: permohonan.surat_kuasa,
+    //         bukti_modal: permohonan.bukti_modal,
+    //         ktp: permohonan.ktp,
+    //         user_id: permohonan.user_id,
+    //     });
+    //     setFileInputs({});
+    //     setEditingId(permohonan.id!);
+    //     setErrors({});
+    // };
+
     const handleReset = () => {
-        if (profile) {
-            setFormData({
-                name: profile.name,
-                email: profile.email,
-                no_hp: profile.no_hp,
-                alamat: profile.alamat,
-                username: profile.username,
-                password: "",
-                accessibility_settings: profile.accessibility_settings,
-            });
-        }
+        setFormData({ ...initialForm, user_id: formData.user_id });
+        setFileInputs({});
+        setEditingId(null);
+        setErrors({});
+    };
+
+    // Pagination logic
+    const totalPages = Math.max(
+        1,
+        Math.ceil(permohonans.length / itemsPerPage)
+    );
+    const paginatedPermohonans = permohonans.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    const handlePageChange = (page: number) => {
+        if (page >= 1 && page <= totalPages) setCurrentPage(page);
     };
 
     return (
         <div className="register-container">
-            {/* Background Animation with Cooperative Theme */}
+            {/* Animated Background with Cooperative Theme */}
             <div className="background-animation">
                 <div className="floating-shapes">
+                    {/* Community Circles representing members */}
                     <div className="shape community-circle shape-1">
                         <div className="member-dots">
                             <div className="dot"></div>
@@ -179,9 +226,13 @@ const ProfilePendaftar: React.FC = () => {
                             <div className="dot"></div>
                         </div>
                     </div>
+
+                    {/* Money/Coin Animation */}
                     <div className="shape coin-shape shape-2">
                         <div className="coin-inner">₹</div>
                     </div>
+
+                    {/* Handshake/Partnership Symbol */}
                     <div className="shape partnership-shape shape-3">
                         <svg
                             width="30"
@@ -195,6 +246,8 @@ const ProfilePendaftar: React.FC = () => {
                             <path d="M13 7a4 4 0 0 1 8 0v10a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2z" />
                         </svg>
                     </div>
+
+                    {/* Growth Chart */}
                     <div className="shape growth-chart shape-4">
                         <div className="chart-bars">
                             <div className="bar bar-1"></div>
@@ -202,6 +255,8 @@ const ProfilePendaftar: React.FC = () => {
                             <div className="bar bar-3"></div>
                         </div>
                     </div>
+
+                    {/* Additional Cooperative Elements */}
                     <div className="shape savings-box shape-5">
                         <svg
                             width="25"
@@ -217,6 +272,7 @@ const ProfilePendaftar: React.FC = () => {
                             <path d="M9 12h6" />
                         </svg>
                     </div>
+
                     <div className="shape unity-ring shape-6">
                         <div className="ring-segments">
                             <div className="segment"></div>
@@ -226,12 +282,16 @@ const ProfilePendaftar: React.FC = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Money Flow Animation */}
                 <div className="money-flow">
                     <div className="money-particle">₹</div>
                     <div className="money-particle">₹</div>
                     <div className="money-particle">₹</div>
                     <div className="money-particle">₹</div>
                 </div>
+
+                {/* Network Connections */}
                 <div className="network-connections">
                     <div className="connection-line line-1"></div>
                     <div className="connection-line line-2"></div>
@@ -254,7 +314,7 @@ const ProfilePendaftar: React.FC = () => {
                         </div>
                         <h1 className="register-title">
                             <span className="title-gradient">
-                                Profil Pengguna
+                                Pengajuan Permohonan
                             </span>
                         </h1>
                         <p className="register-subtitle">
@@ -262,203 +322,201 @@ const ProfilePendaftar: React.FC = () => {
                         </p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="register-form">
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label htmlFor="name" className="form-label">
-                                    <svg
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                    >
-                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                        <circle cx="12" cy="7" r="4" />
-                                    </svg>
-                                    Nama Lengkap
-                                </label>
-                                <div className="input-wrapper">
-                                    <input
-                                        type="text"
-                                        id="name"
-                                        name="name"
-                                        value={formData.name}
-                                        onChange={handleInputChange}
-                                        className="form-input"
-                                        placeholder="Masukkan nama lengkap"
-                                    />
-                                    <div className="input-focus-line"></div>
-                                </div>
-                            </div>
-                            <div className="form-group">
-                                <label
-                                    htmlFor="username"
-                                    className="form-label"
-                                >
-                                    <svg
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                    >
-                                        <circle cx="12" cy="12" r="10" />
-                                        <circle cx="12" cy="12" r="3" />
-                                        <path d="M2 12h4M18 12h4M12 2v4M12 18v4" />
-                                    </svg>
-                                    Username
-                                </label>
-                                <div className="input-wrapper">
-                                    <input
-                                        type="text"
-                                        id="username"
-                                        name="username"
-                                        value={formData.username}
-                                        onChange={handleInputChange}
-                                        className="form-input"
-                                        placeholder="Masukkan username"
-                                    />
-                                    <div className="input-focus-line"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label htmlFor="email" className="form-label">
-                                    <svg
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                    >
-                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                                        <polyline points="22,6 12,13 2,6" />
-                                    </svg>
-                                    Email
-                                </label>
-                                <div className="input-wrapper">
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleInputChange}
-                                        className="form-input"
-                                        placeholder="Masukkan email"
-                                        readOnly
-                                    />
-                                    <div className="input-focus-line"></div>
-                                </div>
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="no_hp" className="form-label">
-                                    <svg
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                    >
-                                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                                    </svg>
-                                    No HP
-                                </label>
-                                <div className="input-wrapper">
-                                    <input
-                                        type="tel"
-                                        id="no_hp"
-                                        name="no_hp"
-                                        value={formData.no_hp}
-                                        onChange={handleInputChange}
-                                        onKeyPress={handleNoHpKeyPress}
-                                        className="form-input"
-                                        placeholder="Masukkan no HP"
-                                        
-                                    />
-                                    <div className="input-focus-line"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="alamat" className="form-label">
-                                <svg
-                                    width="14"
-                                    height="14"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                >
-                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                                    <circle cx="12" cy="10" r="3" />
-                                </svg>
-                                Alamat
-                            </label>
-                            <div className="input-wrapper textarea-wrapper">
-                                <textarea
-                                    id="alamat"
-                                    name="alamat"
-                                    value={formData.alamat}
-                                    onChange={handleInputChange}
-                                    className="form-input"
-                                    placeholder="Masukkan alamat lengkap"
-                                    rows={3}
-                                ></textarea>
-                                <div className="input-focus-line"></div>
-                            </div>
-                        </div>
-
+                    <form
+                        onSubmit={handleSubmit}
+                        className="register-form"
+                        encType="multipart/form-data"
+                    >
                         <div className="form-row">
                             <div className="form-group">
                                 <label
-                                    htmlFor="password"
+                                    htmlFor="susunan_penggurus"
                                     className="form-label"
                                 >
-                                    <svg
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                    >
-                                        <rect
-                                            x="3"
-                                            y="11"
-                                            width="18"
-                                            height="11"
-                                            rx="2"
-                                            ry="2"
-                                        />
-                                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                                    </svg>
-                                    Password (kosongkan jika tidak ingin
-                                    mengubah)
+                                    Susunan Pengurus (PDF)
                                 </label>
                                 <div className="input-wrapper">
                                     <input
-                                        type="password"
-                                        id="password"
-                                        name="password"
-                                        value={formData.password}
+                                        type="file"
+                                        id="susunan_penggurus"
+                                        name="susunan_penggurus"
+                                        accept="application/pdf"
                                         onChange={handleInputChange}
                                         className="form-input"
-                                        placeholder="Masukkan password baru"
                                     />
                                     <div className="input-focus-line"></div>
                                 </div>
+                                {formData.susunan_penggurus &&
+                                    typeof formData.susunan_penggurus ===
+                                        "string" &&
+                                    !fileInputs.susunan_penggurus &&
+                                    editingId && (
+                                        <a
+                                            href={`/storage/${formData.susunan_penggurus}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ fontSize: 12 }}
+                                        >
+                                            Lihat file lama
+                                        </a>
+                                    )}
+                                {errors.susunan_penggurus && (
+                                    <span className="error-message-text">
+                                        {errors.susunan_penggurus}
+                                    </span>
+                                )}
                             </div>
-                            <div className="form-group"></div>
+                            <div className="form-group">
+                                <label
+                                    htmlFor="surat_nonpengurus"
+                                    className="form-label"
+                                >
+                                    Surat Non Pengurus (PDF)
+                                </label>
+                                <div className="input-wrapper">
+                                    <input
+                                        type="file"
+                                        id="surat_nonpengurus"
+                                        name="surat_nonpengurus"
+                                        accept="application/pdf"
+                                        onChange={handleInputChange}
+                                        className="form-input"
+                                    />
+                                    <div className="input-focus-line"></div>
+                                </div>
+                                {formData.surat_nonpengurus &&
+                                    typeof formData.surat_nonpengurus ===
+                                        "string" &&
+                                    !fileInputs.surat_nonpengurus &&
+                                    editingId && (
+                                        <a
+                                            href={`/storage/${formData.surat_nonpengurus}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ fontSize: 12 }}
+                                        >
+                                            Lihat file lama
+                                        </a>
+                                    )}
+                                {errors.surat_nonpengurus && (
+                                    <span className="error-message-text">
+                                        {errors.surat_nonpengurus}
+                                    </span>
+                                )}
+                            </div>
                         </div>
-
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label
+                                    htmlFor="surat_kuasa"
+                                    className="form-label"
+                                >
+                                    Surat Kuasa (PDF)
+                                </label>
+                                <div className="input-wrapper">
+                                    <input
+                                        type="file"
+                                        id="surat_kuasa"
+                                        name="surat_kuasa"
+                                        accept="application/pdf"
+                                        onChange={handleInputChange}
+                                        className="form-input"
+                                    />
+                                    <div className="input-focus-line"></div>
+                                </div>
+                                {formData.surat_kuasa &&
+                                    typeof formData.surat_kuasa === "string" &&
+                                    !fileInputs.surat_kuasa &&
+                                    editingId && (
+                                        <a
+                                            href={`/storage/${formData.surat_kuasa}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ fontSize: 12 }}
+                                        >
+                                            Lihat file lama
+                                        </a>
+                                    )}
+                                {errors.surat_kuasa && (
+                                    <span className="error-message-text">
+                                        {errors.surat_kuasa}
+                                    </span>
+                                )}
+                            </div>
+                            <div className="form-group">
+                                <label
+                                    htmlFor="bukti_modal"
+                                    className="form-label"
+                                >
+                                    Bukti Modal (PDF)
+                                </label>
+                                <div className="input-wrapper">
+                                    <input
+                                        type="file"
+                                        id="bukti_modal"
+                                        name="bukti_modal"
+                                        accept="application/pdf"
+                                        onChange={handleInputChange}
+                                        className="form-input"
+                                    />
+                                    <div className="input-focus-line"></div>
+                                </div>
+                                {formData.bukti_modal &&
+                                    typeof formData.bukti_modal === "string" &&
+                                    !fileInputs.bukti_modal &&
+                                    editingId && (
+                                        <a
+                                            href={`/storage/${formData.bukti_modal}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ fontSize: 12 }}
+                                        >
+                                            Lihat file lama
+                                        </a>
+                                    )}
+                                {errors.bukti_modal && (
+                                    <span className="error-message-text">
+                                        {errors.bukti_modal}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label htmlFor="ktp" className="form-label">
+                                    KTP (PDF)
+                                </label>
+                                <div className="input-wrapper">
+                                    <input
+                                        type="file"
+                                        id="ktp"
+                                        name="ktp"
+                                        accept="application/pdf"
+                                        onChange={handleInputChange}
+                                        className="form-input"
+                                    />
+                                    <div className="input-focus-line"></div>
+                                </div>
+                                {formData.ktp &&
+                                    typeof formData.ktp === "string" &&
+                                    !fileInputs.ktp &&
+                                    editingId && (
+                                        <a
+                                            href={`/storage/${formData.ktp}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ fontSize: 12 }}
+                                        >
+                                            Lihat file lama
+                                        </a>
+                                    )}
+                                {errors.ktp && (
+                                    <span className="error-message-text">
+                                        {errors.ktp}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
                         <div
                             className="form-actions"
                             style={{ display: "flex", gap: 12, marginTop: 16 }}
@@ -493,7 +551,11 @@ const ProfilePendaftar: React.FC = () => {
                                     {loading ? (
                                         <div className="loading-spinner">
                                             <div className="spinner-ring cooperative-spinner"></div>
-                                            <span>Menyimpan...</span>
+                                            <span>
+                                                {editingId
+                                                    ? "Menyimpan..."
+                                                    : "Mengirim..."}
+                                            </span>
                                         </div>
                                     ) : (
                                         <>
@@ -520,7 +582,9 @@ const ProfilePendaftar: React.FC = () => {
                                                     y2="11"
                                                 />
                                             </svg>
-                                            Simpan Perubahan
+                                            {editingId
+                                                ? "Simpan Perubahan"
+                                                : "Ajukan Permohonan"}
                                         </>
                                     )}
                                 </span>
@@ -528,7 +592,7 @@ const ProfilePendaftar: React.FC = () => {
                         </div>
                     </form>
 
-                    {/* Alert message, styled like Berita.tsx */}
+                    {/* Alert message */}
                     {alert.text && (
                         <div
                             className={`relative overflow-hidden rounded-2xl p-6 shadow-lg transform transition-all duration-300 mt-4 ${
@@ -541,7 +605,6 @@ const ProfilePendaftar: React.FC = () => {
                             <div className="relative flex items-center gap-3">
                                 <div className="p-2 bg-white/20 rounded-full">
                                     {alert.type === "success" ? (
-                                        // Success icon (Save)
                                         <svg
                                             width="20"
                                             height="20"
@@ -554,7 +617,6 @@ const ProfilePendaftar: React.FC = () => {
                                             <polyline points="7 3 7 8 15 8" />
                                         </svg>
                                     ) : (
-                                        // Error icon (X)
                                         <svg
                                             width="20"
                                             height="20"
@@ -584,6 +646,198 @@ const ProfilePendaftar: React.FC = () => {
                         </div>
                     )}
 
+                    {/* Tabel daftar permohonan */}
+                    <div style={{ marginTop: 32 }}>
+                        <h2
+                            style={{
+                                fontWeight: 700,
+                                fontSize: 18,
+                                marginBottom: 12,
+                            }}
+                        >
+                            Daftar Permohonan
+                        </h2>
+                        <div style={{ overflowX: "auto" }}>
+                            <table
+                                style={{
+                                    width: "100%",
+                                    borderCollapse: "collapse",
+                                }}
+                            >
+                                <thead>
+                                    <tr style={{ background: "#f8faff" }}>
+                                        <th
+                                            style={{
+                                                padding: 8,
+                                                border: "1px solid #e1e5e9",
+                                            }}
+                                        >
+                                            No
+                                        </th>
+                                        <th
+                                            style={{
+                                                padding: 8,
+                                                border: "1px solid #e1e5e9",
+                                            }}
+                                        >
+                                            Tanggal
+                                        </th>
+                                        <th
+                                            style={{
+                                                padding: 8,
+                                                border: "1px solid #e1e5e9",
+                                            }}
+                                        >
+                                            Status
+                                        </th>
+                                        {/* Hapus kolom Aksi */}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {paginatedPermohonans.length === 0 && (
+                                        <tr>
+                                            <td
+                                                colSpan={3} // ubah dari 4 ke 3
+                                                style={{
+                                                    textAlign: "center",
+                                                    padding: 16,
+                                                }}
+                                            >
+                                                Tidak ada data permohonan.
+                                            </td>
+                                        </tr>
+                                    )}
+                                    {paginatedPermohonans.map((p, i) => (
+                                        <tr key={p.id}>
+                                            <td
+                                                style={{
+                                                    padding: 8,
+                                                    border: "1px solid #e1e5e9",
+                                                }}
+                                            >
+                                                {(currentPage - 1) *
+                                                    itemsPerPage +
+                                                    i +
+                                                    1}
+                                            </td>
+                                            <td
+                                                style={{
+                                                    padding: 8,
+                                                    border: "1px solid #e1e5e9",
+                                                }}
+                                            >
+                                                {/* Tampilkan tanggal, fallback "-" jika tidak ada */}
+                                                {p.created_at
+                                                    ? new Date(
+                                                          p.created_at
+                                                      ).toLocaleDateString(
+                                                          "id-ID"
+                                                      )
+                                                    : "-"}
+                                            </td>
+                                            <td
+                                                style={{
+                                                    padding: 8,
+                                                    border: "1px solid #e1e5e9",
+                                                }}
+                                            >
+                                                {p.status || "-"}
+                                            </td>
+                                            {/* Hapus tombol Detail */}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        {/* Pagination controls */}
+                        {totalPages > 1 && (
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    marginTop: 16,
+                                    gap: 8,
+                                }}
+                            >
+                                <button
+                                    onClick={() =>
+                                        handlePageChange(currentPage - 1)
+                                    }
+                                    disabled={currentPage === 1}
+                                    style={{
+                                        padding: "6px 12px",
+                                        borderRadius: 6,
+                                        border: "1px solid #e1e5e9",
+                                        background:
+                                            currentPage === 1
+                                                ? "#f8faff"
+                                                : "#fff",
+                                        color: "#2c5aa0",
+                                        cursor:
+                                            currentPage === 1
+                                                ? "not-allowed"
+                                                : "pointer",
+                                    }}
+                                >
+                                    &laquo;
+                                </button>
+                                {Array.from(
+                                    { length: totalPages },
+                                    (_, idx) => (
+                                        <button
+                                            key={idx + 1}
+                                            onClick={() =>
+                                                handlePageChange(idx + 1)
+                                            }
+                                            style={{
+                                                padding: "6px 12px",
+                                                borderRadius: 6,
+                                                border: "1px solid #e1e5e9",
+                                                background:
+                                                    currentPage === idx + 1
+                                                        ? "#2c5aa0"
+                                                        : "#fff",
+                                                color:
+                                                    currentPage === idx + 1
+                                                        ? "#fff"
+                                                        : "#2c5aa0",
+                                                fontWeight:
+                                                    currentPage === idx + 1
+                                                        ? 700
+                                                        : 500,
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            {idx + 1}
+                                        </button>
+                                    )
+                                )}
+                                <button
+                                    onClick={() =>
+                                        handlePageChange(currentPage + 1)
+                                    }
+                                    disabled={currentPage === totalPages}
+                                    style={{
+                                        padding: "6px 12px",
+                                        borderRadius: 6,
+                                        border: "1px solid #e1e5e9",
+                                        background:
+                                            currentPage === totalPages
+                                                ? "#f8faff"
+                                                : "#fff",
+                                        color: "#2c5aa0",
+                                        cursor:
+                                            currentPage === totalPages
+                                                ? "not-allowed"
+                                                : "pointer",
+                                    }}
+                                >
+                                    &raquo;
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
                     <div className="register-footer">
                         <button
                             type="button"
@@ -605,8 +859,8 @@ const ProfilePendaftar: React.FC = () => {
                     © {new Date().getFullYear()} SILUK. All rights reserved.
                 </div>
             </div>
+            {/* ...styles remain unchanged... */}
 
-            {/* Styles copied from Register.tsx */}
             <style>{`
                 /* ...copy all styles from Register.tsx here... */
                 /* Container and Background */
@@ -1502,4 +1756,4 @@ const ProfilePendaftar: React.FC = () => {
     );
 };
 
-export default ProfilePendaftar;
+export default Permohonan;
