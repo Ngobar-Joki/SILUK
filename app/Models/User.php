@@ -54,8 +54,5 @@ class User extends Authenticatable
         ];
     }
     
-    public function verify_users()
-    {
-        return $this->hasMany(verify_user::class, 'user_id');
-    }
+   
 }

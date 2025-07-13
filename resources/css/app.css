@@ -1,10 +1,11 @@
+/* Import custom CSS files */
+@import url("./ChatWidget.css");
+@import url("./AccessibilityWidget.css");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Import custom CSS files */
-@import url("./ChatWidget.css");
-@import url("./AccessibilityWidget.css");
 
 @layer base {
     body {

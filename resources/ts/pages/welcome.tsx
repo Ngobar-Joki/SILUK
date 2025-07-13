@@ -505,7 +505,7 @@ const Welcome: React.FC = () => {
                                 {user && ( // Only show Pengajuan when logged in
                                     <li>
                                         <a
-                                            href="/pengajuan"
+                                            href="/permohonan"
                                             style={{
                                                 display: 'flex',
                                                 alignItems: 'center',
@@ -630,7 +630,7 @@ const Welcome: React.FC = () => {
                             {user && ( // Only show Pengajuan when logged in
                                 <li>
                                     <a
-                                        href="/pengajuan" 
+                                        href="/permohonan" 
                                         style={{
                                             display: 'flex',
                                             alignItems: 'center',
@@ -751,7 +751,7 @@ const Welcome: React.FC = () => {
                                                 </p>
                                             </div>
                                             <a
-                                                href="/profile"
+                                                href="/profile-pendaftar"
                                                 style={{
                                                     display: 'block',
                                                     padding: '0.5rem 1rem',

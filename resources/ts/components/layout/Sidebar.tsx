@@ -57,6 +57,13 @@ const Sidebar: React.FC<SidebarProps> = ({
             icon: <Home size={20} />,
             href: "/dashboard",
         },
+
+        {
+            id: "permohonan",
+            label: "Daftar Permohonan",
+            icon: <Newspaper size={20} />,
+            href: "/daftar-permohonan",
+        },
         {
             id: "management",
             label: "Management",
