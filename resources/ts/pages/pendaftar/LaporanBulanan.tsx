@@ -10,36 +10,31 @@ declare global {
     }
 }
 
-interface Permohonan {
+interface LaporanBulanan {
     id?: number;
-    susunan_penggurus: string;
-    surat_nonpengurus: string;
-    surat_kuasa: string;
-    bukti_modal: string;
-    ktp: string;
+    periode: string;
+    data_laporan: string;
     user_id: number;
+    status: "pending" | "accepted" | "rejected";
     created_at?: string;
-    status?: string;
+    user?: any;
 }
 
-const initialForm: Omit<Permohonan, "id" | "user"> = {
-    susunan_penggurus: "",
-    surat_nonpengurus: "",
-    surat_kuasa: "",
-    bukti_modal: "",
-    ktp: "",
+const initialForm: Omit<LaporanBulanan, "id" | "user" | "created_at"> = {
+    periode: "",
+    data_laporan: "",
     user_id: 0,
-    status: "pending", // default status
+    status: "pending",
 };
 
-const Permohonan: React.FC = () => {
+const LaporanBulanan: React.FC = () => {
     const [loading, setLoading] = useState(false);
-    const [permohonans, setPermohonans] = useState<Permohonan[]>([]);
+    const [laporans, setLaporans] = useState<LaporanBulanan[]>([]);
     const [formData, setFormData] =
-        useState<Omit<Permohonan, "id" | "user">>(initialForm);
-    const [fileInputs, setFileInputs] = useState<
-        Partial<Record<keyof typeof initialForm, File | null>>
-    >({});
+        useState<Omit<LaporanBulanan, "id" | "user" | "created_at">>(
+            initialForm
+        );
+    const [fileInput, setFileInput] = useState<File | null>(null);
     const [alert, setAlert] = useState<{
         text: string;
         type: "success" | "error" | "";
@@ -50,9 +45,6 @@ const Permohonan: React.FC = () => {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
-    const [canSubmit, setCanSubmit] = useState(true);
-    const [hasPending, setHasPending] = useState(false);
-    const [hasAccepted, setHasAccepted] = useState(false);
 
     const showToast = (type: "success" | "error", message: string) => {
         setAlert({ text: message, type });
@@ -60,53 +52,29 @@ const Permohonan: React.FC = () => {
         setTimeout(() => setAlert({ text: "", type: "" }), 3000);
     };
 
-    // Fetch permohonan list
+    // Fetch laporan list
     useEffect(() => {
-        fetchPermohonans();
+        fetchLaporans();
     }, []);
 
-    const fetchPermohonans = async () => {
+    const fetchLaporans = async () => {
         setLoading(true);
         try {
-            const res = await axios.get("/permohonan/fetched");
-            if (res.data && Array.isArray(res.data.permohonans)) {
-                setPermohonans(res.data.permohonans);
-
-                // Cek apakah ada permohonan accepted
-                const accepted = res.data.permohonans.some(
-                    (p: Permohonan) => p.status === "accepted"
-                );
-                setHasAccepted(accepted);
-
-                // Cek apakah ada permohonan pending
-                const pending = res.data.permohonans.some(
-                    (p: Permohonan) => p.status === "pending"
-                );
-                setHasPending(pending);
-
-                // Cek apakah permohonan terakhir bukan rejected
-                let canAjukan = true;
-                if (accepted) {
-                    canAjukan = false;
-                } else if (res.data.permohonans.length > 0) {
-                    const latest = res.data.permohonans[0];
-                    if (latest.status !== "rejected") {
-                        canAjukan = false;
-                    }
-                }
-                setCanSubmit(canAjukan);
+            const res = await axios.get("/laporan-bulanan/fetched");
+            if (res.data && Array.isArray(res.data.laporans)) {
+                setLaporans(res.data.laporans);
             } else {
                 showToast(
                     "error",
-                    res.data?.message || "Gagal mengambil data permohonan"
+                    res.data?.message || "Gagal mengambil data laporan"
                 );
             }
         } catch (e: any) {
             showToast(
                 "error",
                 e?.response?.data?.message
-                    ? `Gagal mengambil data permohonan: ${e.response.data.message}`
-                    : "Gagal mengambil data permohonan"
+                    ? `Gagal mengambil data laporan: ${e.response.data.message}`
+                    : "Gagal mengambil data laporan"
             );
         } finally {
             setLoading(false);
@@ -126,9 +94,14 @@ const Permohonan: React.FC = () => {
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
         const { name, value, type, files } = e.target as HTMLInputElement;
-        if (type === "file" && files && files.length > 0) {
-            setFileInputs((prev) => ({ ...prev, [name]: files[0] }));
-            setFormData((prev) => ({ ...prev, [name]: files[0].name }));
+        if (
+            name === "data_laporan" &&
+            type === "file" &&
+            files &&
+            files.length > 0
+        ) {
+            setFileInput(files[0]);
+            setFormData((prev) => ({ ...prev, data_laporan: files[0].name }));
         } else {
             setFormData((prev) => ({
                 ...prev,
@@ -143,29 +116,20 @@ const Permohonan: React.FC = () => {
         setLoading(true);
         setErrors({});
         try {
-            const url = editingId ? `/permohonan/${editingId}` : "/permohonan";
-            const method = editingId ? "put" : "post";
+            const url = editingId
+                ? `/laporan-bulanan/${editingId}`
+                : "/laporan-bulanan";
+            const method = editingId ? "post" : "post";
             const form = new FormData();
+            form.append("periode", formData.periode);
             form.append("user_id", String(formData.user_id));
-            form.append("status", "pending"); // always send as pending
-            [
-                "susunan_penggurus",
-                "surat_nonpengurus",
-                "surat_kuasa",
-                "bukti_modal",
-                "ktp",
-            ].forEach((field) => {
-                if (fileInputs[field as keyof typeof initialForm]) {
-                    form.append(
-                        field,
-                        fileInputs[field as keyof typeof initialForm]!
-                    );
-                } else if (!editingId) {
-                    form.append(field, "");
-                }
-            });
+            form.append("status", formData.status);
+            if (fileInput) {
+                form.append("data_laporan", fileInput);
+            } else if (!editingId) {
+                form.append("data_laporan", "");
+            }
 
-            // For update, if file not changed, don't send it (handled by backend)
             const res = await axios({
                 url,
                 method,
@@ -182,14 +146,14 @@ const Permohonan: React.FC = () => {
                 showToast(
                     "success",
                     editingId
-                        ? "Permohonan berhasil diperbarui"
-                        : "Permohonan berhasil ditambahkan"
+                        ? "Laporan bulanan berhasil diperbarui"
+                        : "Laporan bulanan berhasil ditambahkan"
                 );
-                handleReset(); // reset form & file input
-                fetchPermohonans(); // refresh table
+                handleReset();
+                fetchLaporans();
                 setTimeout(() => {
                     window.location.reload();
-                }, 1000); // beri jeda agar alert sempat tampil
+                }, 1000);
             } else {
                 showToast("error", res.data.message || "Gagal menyimpan data");
             }
@@ -197,12 +161,6 @@ const Permohonan: React.FC = () => {
             if (err.response?.status === 422 && err.response.data.errors) {
                 setErrors(err.response.data.errors);
                 showToast("error", "Validasi gagal");
-            } else if (
-                err.response?.status === 403 &&
-                err.response.data.message
-            ) {
-                showToast("error", err.response.data.message);
-                setCanSubmit(false);
             } else {
                 showToast("error", "Terjadi kesalahan saat menyimpan data");
             }
@@ -211,33 +169,16 @@ const Permohonan: React.FC = () => {
         }
     };
 
-    // const handleEdit = (permohonan: Permohonan) => {
-    //     setFormData({
-    //         susunan_pengurus: permohonan.susunan_pengurus,
-    //         surat_nonpengurus: permohonan.surat_nonpengurus,
-    //         surat_kuasa: permohonan.surat_kuasa,
-    //         bukti_modal: permohonan.bukti_modal,
-    //         ktp: permohonan.ktp,
-    //         user_id: permohonan.user_id,
-    //     });
-    //     setFileInputs({});
-    //     setEditingId(permohonan.id!);
-    //     setErrors({});
-    // };
-
     const handleReset = () => {
         setFormData({ ...initialForm, user_id: formData.user_id });
-        setFileInputs({});
+        setFileInput(null);
         setEditingId(null);
         setErrors({});
     };
 
     // Pagination logic
-    const totalPages = Math.max(
-        1,
-        Math.ceil(permohonans.length / itemsPerPage)
-    );
-    const paginatedPermohonans = permohonans.slice(
+    const totalPages = Math.max(1, Math.ceil(laporans.length / itemsPerPage));
+    const paginatedLaporans = laporans.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
@@ -246,17 +187,9 @@ const Permohonan: React.FC = () => {
         if (page >= 1 && page <= totalPages) setCurrentPage(page);
     };
 
-    // Tampilkan alert !canSubmit dengan delay setelah alert sukses/error
-    // Tampilkan alert !canSubmit dengan delay setelah alert sukses/error
-    useEffect(() => {
-        if (!canSubmit) {
-            const timeout = setTimeout(() => {}, 5000);
-            return () => clearTimeout(timeout);
-        }
-    }, [canSubmit, alert.text]);
     return (
         <div className="register-container">
-            {/* Animated Background with Cooperative Theme */}
+            {/* ...background and animation code remains unchanged... */}
             <div className="background-animation">
                 <div className="floating-shapes">
                     {/* Community Circles representing members */}
@@ -339,10 +272,10 @@ const Permohonan: React.FC = () => {
                     <div className="connection-line line-3"></div>
                 </div>
             </div>
-
             <div className="register-wrapper">
                 <div className="register-card">
                     <div className="register-header">
+                        {/* ...logo and header code remains unchanged... */}
                         <div className="logo-container">
                             <div className="logo-ring cooperative-ring"></div>
                             <div className="logo-center">
@@ -355,7 +288,7 @@ const Permohonan: React.FC = () => {
                         </div>
                         <h1 className="register-title">
                             <span className="title-gradient">
-                                Pengajuan Permohonan
+                                Laporan Bulanan
                             </span>
                         </h1>
                         <p className="register-subtitle">
@@ -370,68 +303,51 @@ const Permohonan: React.FC = () => {
                     >
                         <div className="form-row">
                             <div className="form-group">
-                                <label
-                                    htmlFor="susunan_penggurus"
-                                    className="form-label"
-                                >
-                                    Susunan Pengurus (PDF)
+                                <label htmlFor="periode" className="form-label">
+                                    Periode
                                 </label>
                                 <div className="input-wrapper">
                                     <input
-                                        type="file"
-                                        id="susunan_penggurus"
-                                        name="susunan_penggurus"
-                                        accept="application/pdf"
+                                        type="month"
+                                        id="periode"
+                                        name="periode"
+                                        value={formData.periode}
                                         onChange={handleInputChange}
                                         className="form-input"
+                                        placeholder="Pilih periode"
                                     />
                                     <div className="input-focus-line"></div>
                                 </div>
-                                {formData.susunan_penggurus &&
-                                    typeof formData.susunan_penggurus ===
-                                        "string" &&
-                                    !fileInputs.susunan_penggurus &&
-                                    editingId && (
-                                        <a
-                                            href={`/storage/${formData.susunan_penggurus}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            style={{ fontSize: 12 }}
-                                        >
-                                            Lihat file lama
-                                        </a>
-                                    )}
-                                {errors.susunan_penggurus && (
+                                {errors.periode && (
                                     <span className="error-message-text">
-                                        {errors.susunan_penggurus}
+                                        {errors.periode}
                                     </span>
                                 )}
                             </div>
                             <div className="form-group">
                                 <label
-                                    htmlFor="surat_nonpengurus"
+                                    htmlFor="data_laporan"
                                     className="form-label"
                                 >
-                                    Surat Non Pengurus (PDF)
+                                    File Laporan Bulanan (PDF)
                                 </label>
                                 <div className="input-wrapper">
                                     <input
                                         type="file"
-                                        id="surat_nonpengurus"
-                                        name="surat_nonpengurus"
+                                        id="data_laporan"
+                                        name="data_laporan"
                                         accept="application/pdf"
                                         onChange={handleInputChange}
                                         className="form-input"
                                     />
                                     <div className="input-focus-line"></div>
                                 </div>
-                                {formData.surat_nonpengurus &&
-                                    typeof formData.surat_nonpengurus ===
-                                        "string" &&
-                                    !fileInputs.surat_nonpengurus &&
+                                {formData.data_laporan &&
+                                    typeof formData.data_laporan === "string" &&
+                                    !fileInput &&
                                     editingId && (
                                         <a
-                                            href={`/storage/${formData.surat_nonpengurus}`}
+                                            href={`/storage/${formData.data_laporan}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             style={{ fontSize: 12 }}
@@ -439,121 +355,9 @@ const Permohonan: React.FC = () => {
                                             Lihat file lama
                                         </a>
                                     )}
-                                {errors.surat_nonpengurus && (
+                                {errors.data_laporan && (
                                     <span className="error-message-text">
-                                        {errors.surat_nonpengurus}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label
-                                    htmlFor="surat_kuasa"
-                                    className="form-label"
-                                >
-                                    Surat Kuasa (PDF)
-                                </label>
-                                <div className="input-wrapper">
-                                    <input
-                                        type="file"
-                                        id="surat_kuasa"
-                                        name="surat_kuasa"
-                                        accept="application/pdf"
-                                        onChange={handleInputChange}
-                                        className="form-input"
-                                    />
-                                    <div className="input-focus-line"></div>
-                                </div>
-                                {formData.surat_kuasa &&
-                                    typeof formData.surat_kuasa === "string" &&
-                                    !fileInputs.surat_kuasa &&
-                                    editingId && (
-                                        <a
-                                            href={`/storage/${formData.surat_kuasa}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            style={{ fontSize: 12 }}
-                                        >
-                                            Lihat file lama
-                                        </a>
-                                    )}
-                                {errors.surat_kuasa && (
-                                    <span className="error-message-text">
-                                        {errors.surat_kuasa}
-                                    </span>
-                                )}
-                            </div>
-                            <div className="form-group">
-                                <label
-                                    htmlFor="bukti_modal"
-                                    className="form-label"
-                                >
-                                    Bukti Modal (PDF)
-                                </label>
-                                <div className="input-wrapper">
-                                    <input
-                                        type="file"
-                                        id="bukti_modal"
-                                        name="bukti_modal"
-                                        accept="application/pdf"
-                                        onChange={handleInputChange}
-                                        className="form-input"
-                                    />
-                                    <div className="input-focus-line"></div>
-                                </div>
-                                {formData.bukti_modal &&
-                                    typeof formData.bukti_modal === "string" &&
-                                    !fileInputs.bukti_modal &&
-                                    editingId && (
-                                        <a
-                                            href={`/storage/${formData.bukti_modal}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            style={{ fontSize: 12 }}
-                                        >
-                                            Lihat file lama
-                                        </a>
-                                    )}
-                                {errors.bukti_modal && (
-                                    <span className="error-message-text">
-                                        {errors.bukti_modal}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label htmlFor="ktp" className="form-label">
-                                    KTP (PDF)
-                                </label>
-                                <div className="input-wrapper">
-                                    <input
-                                        type="file"
-                                        id="ktp"
-                                        name="ktp"
-                                        accept="application/pdf"
-                                        onChange={handleInputChange}
-                                        className="form-input"
-                                    />
-                                    <div className="input-focus-line"></div>
-                                </div>
-                                {formData.ktp &&
-                                    typeof formData.ktp === "string" &&
-                                    !fileInputs.ktp &&
-                                    editingId && (
-                                        <a
-                                            href={`/storage/${formData.ktp}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            style={{ fontSize: 12 }}
-                                        >
-                                            Lihat file lama
-                                        </a>
-                                    )}
-                                {errors.ktp && (
-                                    <span className="error-message-text">
-                                        {errors.ktp}
+                                        {errors.data_laporan}
                                     </span>
                                 )}
                             </div>
@@ -570,7 +374,6 @@ const Permohonan: React.FC = () => {
                                     background: "#e1e5e9",
                                     color: "#2c5aa0",
                                 }}
-                                disabled={!canSubmit}
                             >
                                 <span
                                     className="button-bg"
@@ -585,7 +388,7 @@ const Permohonan: React.FC = () => {
                             </button>
                             <button
                                 type="submit"
-                                disabled={loading || !canSubmit}
+                                disabled={loading}
                                 className="submit-button"
                             >
                                 <span className="button-bg"></span>
@@ -626,28 +429,12 @@ const Permohonan: React.FC = () => {
                                             </svg>
                                             {editingId
                                                 ? "Simpan Perubahan"
-                                                : "Ajukan Permohonan"}
+                                                : "Ajukan Laporan"}
                                         </>
                                     )}
                                 </span>
                             </button>
                         </div>
-                        {!canSubmit && (
-                            <div
-                                style={{
-                                    color: "#e74c3c",
-                                    marginTop: 10,
-                                    fontWeight: 600,
-                                    textAlign: "center",
-                                }}
-                            >
-                                {hasAccepted
-                                    ? "Anda tidak dapat mengajukan permohonan lagi karena sudah diterima."
-                                    : hasPending
-                                    ? "Anda tidak dapat mengajukan permohonan lagi karena masih menunggu keputusan."
-                                    : "Anda tidak dapat mengajukan permohonan lagi."}
-                            </div>
-                        )}
                     </form>
 
                     {/* Alert message */}
@@ -704,7 +491,7 @@ const Permohonan: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Tabel daftar permohonan */}
+                    {/* Tabel daftar laporan bulanan */}
                     <div style={{ marginTop: 32 }}>
                         <h2
                             style={{
@@ -713,7 +500,7 @@ const Permohonan: React.FC = () => {
                                 marginBottom: 12,
                             }}
                         >
-                            Daftar Permohonan
+                            Daftar Laporan Bulanan
                         </h2>
                         <div style={{ overflowX: "auto" }}>
                             <table
@@ -738,7 +525,15 @@ const Permohonan: React.FC = () => {
                                                 border: "1px solid #e1e5e9",
                                             }}
                                         >
-                                            Tanggal
+                                            Periode
+                                        </th>
+                                        <th
+                                            style={{
+                                                padding: 8,
+                                                border: "1px solid #e1e5e9",
+                                            }}
+                                        >
+                                            Tanggal Pengajuan
                                         </th>
                                         <th
                                             style={{
@@ -748,24 +543,31 @@ const Permohonan: React.FC = () => {
                                         >
                                             Status
                                         </th>
-                                        {/* Hapus kolom Aksi */}
+                                        <th
+                                            style={{
+                                                padding: 8,
+                                                border: "1px solid #e1e5e9",
+                                            }}
+                                        >
+                                            File
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {paginatedPermohonans.length === 0 && (
+                                    {paginatedLaporans.length === 0 && (
                                         <tr>
                                             <td
-                                                colSpan={3} // ubah dari 4 ke 3
+                                                colSpan={5}
                                                 style={{
                                                     textAlign: "center",
                                                     padding: 16,
                                                 }}
                                             >
-                                                Tidak ada data permohonan.
+                                                Tidak ada data laporan bulanan.
                                             </td>
                                         </tr>
                                     )}
-                                    {paginatedPermohonans.map((p, i) => (
+                                    {paginatedLaporans.map((p, i) => (
                                         <tr key={p.id}>
                                             <td
                                                 style={{
@@ -784,7 +586,14 @@ const Permohonan: React.FC = () => {
                                                     border: "1px solid #e1e5e9",
                                                 }}
                                             >
-                                                {/* Tampilkan tanggal, fallback "-" jika tidak ada */}
+                                                {p.periode}
+                                            </td>
+                                            <td
+                                                style={{
+                                                    padding: 8,
+                                                    border: "1px solid #e1e5e9",
+                                                }}
+                                            >
                                                 {p.created_at
                                                     ? new Date(
                                                           p.created_at
@@ -801,7 +610,32 @@ const Permohonan: React.FC = () => {
                                             >
                                                 {p.status || "-"}
                                             </td>
-                                            {/* Hapus tombol Detail */}
+                                            <td
+                                                style={{
+                                                    padding: 8,
+                                                    border: "1px solid #e1e5e9",
+                                                    textAlign: "center",
+                                                }}
+                                            >
+                                                {p.data_laporan ? (
+                                                    <a
+                                                        href={`/storage/${p.data_laporan}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        style={{
+                                                            color: "#2c5aa0",
+                                                            textDecoration:
+                                                                "underline",
+                                                            fontWeight: 500,
+                                                            fontSize: 13,
+                                                        }}
+                                                    >
+                                                        Lihat File
+                                                    </a>
+                                                ) : (
+                                                    "-"
+                                                )}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -918,7 +752,6 @@ const Permohonan: React.FC = () => {
                 </div>
             </div>
             {/* ...styles remain unchanged... */}
-
             <style>{`
                 /* ...copy all styles from Register.tsx here... */
                 /* Container and Background */
@@ -1814,4 +1647,4 @@ const Permohonan: React.FC = () => {
     );
 };
 
-export default Permohonan;
+export default LaporanBulanan;

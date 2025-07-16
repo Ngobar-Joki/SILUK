@@ -64,6 +64,31 @@ class PermohonanController extends Controller
     public function store(Request $request)
     {
         try {
+            // Cek apakah user sudah punya permohonan accepted
+            $userId = $request->input('user_id');
+            $existingAccepted = Permohonan::where('user_id', $userId)
+                ->where('status', 'accepted')
+                ->exists();
+
+            if ($existingAccepted) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda sudah memiliki permohonan yang diterima. Tidak dapat mengajukan lagi.'
+                ], 403);
+            }
+
+            // Cek apakah ada permohonan terakhir yang belum rejected
+            $latestPermohonan = Permohonan::where('user_id', $userId)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            if ($latestPermohonan && $latestPermohonan->status !== 'rejected') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda hanya dapat mengajukan ulang jika permohonan terakhir Anda ditolak.'
+                ], 403);
+            }
+
             $validation = $this->validatePermohonan($request);
 
             if (!$validation['status']) {

@@ -93,6 +93,11 @@ Route::get('/daftar-permohonan/fetched', [App\Http\Controllers\DaftarPermohonanC
 Route::post('/daftar-permohonan/verifikasi/{id}', [App\Http\Controllers\DaftarPermohonanController::class, 'verifikasi'])->name('daftar-permohonan.verifikasi');
 Route::post('/daftar-permohonan/tolak/{id}', [App\Http\Controllers\DaftarPermohonanController::class, 'tolak'])->name('daftar-permohonan.tolak');
 
+    // DaftarLaporan routes
+Route::get('/daftar-laporan', [App\Http\Controllers\DaftarLaporanController::class, 'index'])->name('daftar-laporan');
+Route::get('/daftar-laporan/fetched', [App\Http\Controllers\DaftarLaporanController::class, 'fetchedDaftarLaporan'])->name('daftar-laporan.fetched');
+Route::post('/daftar-laporan/verifikasi/{id}', [App\Http\Controllers\DaftarLaporanController::class, 'verifikasi'])->name('daftar-laporan.verifikasi');
+Route::post('/daftar-laporan/tolak/{id}', [App\Http\Controllers\DaftarLaporanController::class, 'tolak'])->name('daftar-laporan.tolak');
 
     Route::get('/api/accessibility/statistics', [App\Http\Controllers\AccessibilityController::class, 'getStatistics']);
 });
@@ -110,4 +115,18 @@ Route::middleware(['auth', 'role:pendaftar'])->group(function () {
     Route::put('/permohonan/{permohonan}', [App\Http\Controllers\PermohonanController::class, 'update'])->name('permohonan.update');
     Route::delete('/permohonan/{permohonan}', [App\Http\Controllers\PermohonanController::class, 'destroy'])->name('permohonan.destroy');
     // Tambahkan endpoint untuk fetch data permohonan (AJAX)
+
+    // LaporanBulanan routes
+    Route::get('/laporan-bulanan', [App\Http\Controllers\LaporanBulananController::class, 'index'])->name('laporan-bulanan');
+    Route::post('/laporan-bulanan', [App\Http\Controllers\LaporanBulananController::class, 'store'])->name('laporan-bulanan.store');
+    Route::get('/laporan-bulanan/fetched', [App\Http\Controllers\LaporanBulananController::class, 'fetchedLaporanBulanan'])->name('laporan-bulanan.fetched');
+    Route::get('/laporan-bulanan/{id}', [App\Http\Controllers\LaporanBulananController::class, 'show'])->name('laporan-bulanan.show');
+    Route::put('/laporan-bulanan/{laporanBulanan}', [App\Http\Controllers\LaporanBulananController::class, 'update'])->name('laporan-bulanan.update');
+    Route::delete('/laporan-bulanan/{laporanBulanan}', [App\Http\Controllers\LaporanBulananController::class, 'destroy'])->name('laporan-bulanan.destroy');
+
    });
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    // Manual trigger for monthly reminder (for testing)
+    Route::post('/admin/send-monthly-reminder', [App\Http\Controllers\DaftarLaporanController::class, 'sendMonthlyReminder']);
+});

@@ -56,8 +56,6 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-
-
 ### 6. Run Database Migrations
 
 ```bash
@@ -163,6 +161,12 @@ php artisan view:clear
 
 # Optimize for production
 php artisan optimize
+
+# Run scheduler manually
+php artisan schedule:run >> /dev/null 2>&1
+
+# Run monthly report reminder
+php artisan reminder:monthly-report
 ```
 
 ## Support
