@@ -70,6 +70,17 @@ class LaporanBulananController extends Controller
 
             $data = $validation['data'];
 
+            // Cek apakah permohonan user sudah di-accepted
+            $permohonanAccepted = \App\Models\Permohonan::where('user_id', $data['user_id'])
+                ->where('status', 'accepted')
+                ->exists();
+            if (!$permohonanAccepted) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda belum dapat mengajukan laporan bulanan karena permohonan Anda belum diterima.'
+                ], 422);
+            }
+
             // Cek apakah sudah ada laporan dengan periode & user_id yang statusnya accepted
             $sudahAda = LaporanBulanan::where('periode', $data['periode'])
                 ->where('user_id', $data['user_id'])

@@ -58,6 +58,24 @@ class StrukturOrganisasiController extends Controller
         }
     }
 
+    // Public method for fetching organizational structure (accessible without authentication)
+    public function fetchedStrukturOrganisasiPublic()
+    {
+        try {
+            $strukturOrganisasi = StrukturOrganisasi::all();
+            return response()->json(['success' => true, 'strukturOrganisasi' => $strukturOrganisasi]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching struktur organisasi (public)', [
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mengambil data.'
+            ], 500);
+        }
+    }
+
     public function store(Request $request)
     {
         try {

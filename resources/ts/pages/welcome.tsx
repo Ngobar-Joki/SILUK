@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 
 // Import CSS untuk animasi custom
 import ChatWidget from "../components/ChatWidget";
+import OrganizationalStructure from "../components/OrganizationalStructure";
+import VisionMission from "../components/VisionMission";
+import BeritaInformation from "../components/BeritaInformation";
 import "../../css/animations.css";
-
 
 interface ThemeContextType {
     theme: string;
@@ -325,103 +327,138 @@ const Welcome: React.FC = () => {
         }
 
         return (
-            <li style={{
-                position: 'relative',
-                listStyle: 'none'
-            }}>
+            <li
+                style={{
+                    position: "relative",
+                    listStyle: "none",
+                }}
+            >
                 <button
                     style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '0.5rem'
+                        display: "flex",
+                        alignItems: "center",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "0.5rem",
                     }}
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                 >
-                    <span style={{
-                        width: '2rem',
-                        height: '2rem',
-                        borderRadius: '50%',
-                        backgroundColor: '#2563eb',
-                        color: 'white',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '0.875rem',
-                        fontWeight: '500'
-                    }}>
+                    <span
+                        style={{
+                            width: "2rem",
+                            height: "2rem",
+                            borderRadius: "50%",
+                            backgroundColor: "#2563eb",
+                            color: "white",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "0.875rem",
+                            fontWeight: "500",
+                        }}
+                    >
                         {user.name.charAt(0)}
                     </span>
                 </button>
                 {profileDropdownOpen && (
-                    <div style={{
-                        position: 'absolute',
-                        right: 0,
-                        marginTop: '0.5rem',
-                        width: '12rem',
-                        backgroundColor: theme === 'dark' ? '#1f2937' : 'white',
-                        borderRadius: '0.5rem',
-                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                        padding: '0.5rem 0',
-                        zIndex: 50
-                    }}>
-                        <div style={{
-                            padding: '0.75rem 1rem',
-                            borderBottom: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`
-                        }}>
-                            <p style={{
-                                fontSize: '0.875rem',
-                                fontWeight: '500',
-                                color: theme === 'dark' ? 'white' : '#111827'
-                            }}>
+                    <div
+                        style={{
+                            position: "absolute",
+                            right: 0,
+                            marginTop: "0.5rem",
+                            width: "12rem",
+                            backgroundColor:
+                                theme === "dark" ? "#1f2937" : "white",
+                            borderRadius: "0.5rem",
+                            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+                            padding: "0.5rem 0",
+                            zIndex: 50,
+                        }}
+                    >
+                        <div
+                            style={{
+                                padding: "0.75rem 1rem",
+                                borderBottom: `1px solid ${
+                                    theme === "dark" ? "#374151" : "#e5e7eb"
+                                }`,
+                            }}
+                        >
+                            <p
+                                style={{
+                                    fontSize: "0.875rem",
+                                    fontWeight: "500",
+                                    color:
+                                        theme === "dark" ? "white" : "#111827",
+                                }}
+                            >
                                 {user.name}
                             </p>
-                            <p style={{
-                                fontSize: '0.75rem',
-                                color: theme === 'dark' ? '#9ca3af' : '#6b7280'
-                            }}>
+                            <p
+                                style={{
+                                    fontSize: "0.75rem",
+                                    color:
+                                        theme === "dark"
+                                            ? "#9ca3af"
+                                            : "#6b7280",
+                                }}
+                            >
                                 {user.role}
                             </p>
                         </div>
                         <a
                             href="/profile-pendaftar"
                             style={{
-                                display: 'block',
-                                padding: '0.5rem 1rem',
-                                fontSize: '0.875rem',
-                                color: theme === 'dark' ? 'white' : '#111827',
-                                textDecoration: 'none'
+                                display: "block",
+                                padding: "0.5rem 1rem",
+                                fontSize: "0.875rem",
+                                color: theme === "dark" ? "white" : "#111827",
+                                textDecoration: "none",
                             }}
-                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = theme === 'dark' ? '#374151' : '#f3f4f6'}
-                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                            onMouseOver={(e) =>
+                                (e.currentTarget.style.backgroundColor =
+                                    theme === "dark" ? "#374151" : "#f3f4f6")
+                            }
+                            onMouseOut={(e) =>
+                                (e.currentTarget.style.backgroundColor =
+                                    "transparent")
+                            }
                         >
-                            <span style={{marginRight: '0.5rem'}}>👤</span>
+                            <span style={{ marginRight: "0.5rem" }}>👤</span>
                             Profile
                         </a>
-                        
-                        <div style={{
-                            borderTop: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`,
-                            margin: '0.5rem 0'
-                        }}></div>
+
+                        <div
+                            style={{
+                                borderTop: `1px solid ${
+                                    theme === "dark" ? "#374151" : "#e5e7eb"
+                                }`,
+                                margin: "0.5rem 0",
+                            }}
+                        ></div>
                         <button
                             onClick={handleLogout}
                             style={{
-                                display: 'block',
-                                width: '100%',
-                                textAlign: 'left',
-                                padding: '0.5rem 1rem',
-                                fontSize: '0.875rem',
-                                color: '#dc2626',
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer'
+                                display: "block",
+                                width: "100%",
+                                textAlign: "left",
+                                padding: "0.5rem 1rem",
+                                fontSize: "0.875rem",
+                                color: "#dc2626",
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
                             }}
-                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = theme === 'dark' ? '#374151' : '#f3f4f6'}
-                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                            onMouseOver={(e) =>
+                                (e.currentTarget.style.backgroundColor =
+                                    theme === "dark" ? "#374151" : "#f3f4f6")
+                            }
+                            onMouseOut={(e) =>
+                                (e.currentTarget.style.backgroundColor =
+                                    "transparent")
+                            }
                         >
-                            <span style={{marginRight: '0.5rem'}}>🔓</span>
+                            <span style={{ marginRight: "0.5rem" }}>🔓</span>
                             Keluar
                         </button>
                     </div>
@@ -507,9 +544,9 @@ const Welcome: React.FC = () => {
                                         <a
                                             href="/permohonan"
                                             style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.25rem'
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "0.25rem",
                                             }}
                                         >
                                             Pengajuan
@@ -527,9 +564,9 @@ const Welcome: React.FC = () => {
                                         <a
                                             href="/laporan-bulanan"
                                             style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.25rem'
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "0.25rem",
                                             }}
                                         >
                                             Laporan
@@ -634,11 +671,11 @@ const Welcome: React.FC = () => {
                             {user && ( // Only show Pengajuan when logged in
                                 <li>
                                     <a
-                                        href="/permohonan" 
+                                        href="/permohonan"
                                         style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.25rem'
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "0.25rem",
                                         }}
                                     >
                                         Pengajuan
@@ -656,9 +693,9 @@ const Welcome: React.FC = () => {
                                     <a
                                         href="/laporan-bulanan"
                                         style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.25rem'
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "0.25rem",
                                         }}
                                     >
                                         Laporan
@@ -702,105 +739,176 @@ const Welcome: React.FC = () => {
                                     </a>
                                 </li>
                             ) : (
-                                <li style={{
-                                    position: 'relative',
-                                    listStyle: 'none'
-                                }}>
+                                <li
+                                    style={{
+                                        position: "relative",
+                                        listStyle: "none",
+                                    }}
+                                >
                                     <button
                                         style={{
-                                            display: 'flex', 
-                                            alignItems: 'center',
-                                            width: '100%',
-                                            padding: '0.5rem 1rem',
-                                            background: 'none',
-                                            border: 'none',
-                                            cursor: 'pointer'
+                                            display: "flex",
+                                            alignItems: "center",
+                                            width: "100%",
+                                            padding: "0.5rem 1rem",
+                                            background: "none",
+                                            border: "none",
+                                            cursor: "pointer",
                                         }}
-                                        onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                                        onClick={() =>
+                                            setProfileDropdownOpen(
+                                                !profileDropdownOpen
+                                            )
+                                        }
                                     >
-                                        <span style={{
-                                            width: '2rem',
-                                            height: '2rem',
-                                            borderRadius: '50%',
-                                            backgroundColor: '#2563eb',
-                                            color: 'white',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '0.875rem',
-                                            fontWeight: '500',
-                                            marginRight: '0.75rem'
-                                        }}>
+                                        <span
+                                            style={{
+                                                width: "2rem",
+                                                height: "2rem",
+                                                borderRadius: "50%",
+                                                backgroundColor: "#2563eb",
+                                                color: "white",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                fontSize: "0.875rem",
+                                                fontWeight: "500",
+                                                marginRight: "0.75rem",
+                                            }}
+                                        >
                                             {user.name.charAt(0)}
                                         </span>
-                                        <span style={{
-                                            fontSize: '0.875rem',
-                                            color: theme === 'dark' ? 'white' : '#111827'
-                                        }}>
+                                        <span
+                                            style={{
+                                                fontSize: "0.875rem",
+                                                color:
+                                                    theme === "dark"
+                                                        ? "white"
+                                                        : "#111827",
+                                            }}
+                                        >
                                             {user.name}
                                         </span>
                                     </button>
                                     {profileDropdownOpen && (
-                                        <div style={{
-                                            backgroundColor: theme === 'dark' ? '#1f2937' : 'white',
-                                            padding: '0.5rem 0',
-                                            width: '100%'
-                                        }}>
-                                            <div style={{
-                                                padding: '0.75rem 1rem',
-                                                borderBottom: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`
-                                            }}>
-                                                <p style={{
-                                                    fontSize: '0.875rem',
-                                                    fontWeight: '500',
-                                                    color: theme === 'dark' ? 'white' : '#111827'
-                                                }}>
+                                        <div
+                                            style={{
+                                                backgroundColor:
+                                                    theme === "dark"
+                                                        ? "#1f2937"
+                                                        : "white",
+                                                padding: "0.5rem 0",
+                                                width: "100%",
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    padding: "0.75rem 1rem",
+                                                    borderBottom: `1px solid ${
+                                                        theme === "dark"
+                                                            ? "#374151"
+                                                            : "#e5e7eb"
+                                                    }`,
+                                                }}
+                                            >
+                                                <p
+                                                    style={{
+                                                        fontSize: "0.875rem",
+                                                        fontWeight: "500",
+                                                        color:
+                                                            theme === "dark"
+                                                                ? "white"
+                                                                : "#111827",
+                                                    }}
+                                                >
                                                     {user.name}
                                                 </p>
-                                                <p style={{
-                                                    fontSize: '0.75rem',
-                                                    color: theme === 'dark' ? '#9ca3af' : '#6b7280'
-                                                }}>
+                                                <p
+                                                    style={{
+                                                        fontSize: "0.75rem",
+                                                        color:
+                                                            theme === "dark"
+                                                                ? "#9ca3af"
+                                                                : "#6b7280",
+                                                    }}
+                                                >
                                                     {user.role}
                                                 </p>
                                             </div>
                                             <a
                                                 href="/profile-pendaftar"
                                                 style={{
-                                                    display: 'block',
-                                                    padding: '0.5rem 1rem',
-                                                    fontSize: '0.875rem',
-                                                    color: theme === 'dark' ? 'white' : '#111827',
-                                                    textDecoration: 'none'
+                                                    display: "block",
+                                                    padding: "0.5rem 1rem",
+                                                    fontSize: "0.875rem",
+                                                    color:
+                                                        theme === "dark"
+                                                            ? "white"
+                                                            : "#111827",
+                                                    textDecoration: "none",
                                                 }}
-                                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = theme === 'dark' ? '#374151' : '#f3f4f6'}
-                                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                                onMouseOver={(e) =>
+                                                    (e.currentTarget.style.backgroundColor =
+                                                        theme === "dark"
+                                                            ? "#374151"
+                                                            : "#f3f4f6")
+                                                }
+                                                onMouseOut={(e) =>
+                                                    (e.currentTarget.style.backgroundColor =
+                                                        "transparent")
+                                                }
                                             >
-                                                <span style={{marginRight: '0.5rem'}}>👤</span>
+                                                <span
+                                                    style={{
+                                                        marginRight: "0.5rem",
+                                                    }}
+                                                >
+                                                    👤
+                                                </span>
                                                 Profile
                                             </a>
-                                            
-                                            <div style={{
-                                                borderTop: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`,
-                                                margin: '0.5rem 0'
-                                            }}></div>
+
+                                            <div
+                                                style={{
+                                                    borderTop: `1px solid ${
+                                                        theme === "dark"
+                                                            ? "#374151"
+                                                            : "#e5e7eb"
+                                                    }`,
+                                                    margin: "0.5rem 0",
+                                                }}
+                                            ></div>
                                             <button
                                                 onClick={handleLogout}
                                                 style={{
-                                                    display: 'block',
-                                                    width: '100%',
-                                                    textAlign: 'left',
-                                                    padding: '0.5rem 1rem',
-                                                    fontSize: '0.875rem',
-                                                    color: '#dc2626',
-                                                    background: 'none',
-                                                    border: 'none',
-                                                    cursor: 'pointer'
+                                                    display: "block",
+                                                    width: "100%",
+                                                    textAlign: "left",
+                                                    padding: "0.5rem 1rem",
+                                                    fontSize: "0.875rem",
+                                                    color: "#dc2626",
+                                                    background: "none",
+                                                    border: "none",
+                                                    cursor: "pointer",
                                                 }}
-                                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = theme === 'dark' ? '#374151' : '#f3f4f6'}
-                                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                                onMouseOver={(e) =>
+                                                    (e.currentTarget.style.backgroundColor =
+                                                        theme === "dark"
+                                                            ? "#374151"
+                                                            : "#f3f4f6")
+                                                }
+                                                onMouseOut={(e) =>
+                                                    (e.currentTarget.style.backgroundColor =
+                                                        "transparent")
+                                                }
                                             >
-                                                <span style={{marginRight: '0.5rem'}}>🔓</span>
+                                                <span
+                                                    style={{
+                                                        marginRight: "0.5rem",
+                                                    }}
+                                                >
+                                                    🔓
+                                                </span>
                                                 Keluar
                                             </button>
                                         </div>
@@ -832,10 +940,8 @@ const Welcome: React.FC = () => {
                     <div className="hero-content">
                         <div className="hero-text">
                             <h1 className="hero-title">
-                                Wujudkan Impian{" "}
-                                <span className="gradient-text">
-                                    Bersama Koperasi
-                                </span>
+                                Layanan Digital{" "}
+                                <span className="gradient-text">Koperasi</span>
                             </h1>
                             <div className="typing-container">
                                 <h2 className="typing-text">
@@ -844,36 +950,40 @@ const Welcome: React.FC = () => {
                                 </h2>
                             </div>
                             <p className="hero-subtitle">
-                                Platform digital terpercaya untuk mengelola
-                                keuangan, simpanan, pinjaman, dan investasi Anda
-                                dengan mudah, aman, dan transparan.
+                                SILUK adalah website resmi dari Dinas Koperasi
+                                untuk memudahkan proses pendaftaran koperasi
+                                baru dan verifikasi laporan bulanan secara
+                                online. Daftarkan koperasi Anda, ajukan
+                                permohonan, dan pantau status verifikasi dengan
+                                mudah dan transparan.
                             </p>
-                            <div className="hero-buttons">
-                                <a href="/login" className="primary-button">
-                                    <span>Mulai Sekarang</span>
-                                    <span className="button-arrow">→</span>
-                                </a>
-                                <button className="secondary-button">
-                                    Pelajari Lebih Lanjut
-                                </button>
-                            </div>
+                            {!user && (
+                                <div className="hero-buttons">
+                                    <a href="/login" className="primary-button">
+                                        <span>Daftar Koperasi Baru</span>
+                                        <span className="button-arrow">→</span>
+                                    </a>
+                                </div>
+                            )}
                         </div>
                         <div className="hero-image">
                             <div className="image-container">
                                 <div className="floating-card card-1">
-                                    <div className="card-icon">💰</div>
+                                    <div className="card-icon">📝</div>
                                     <div className="card-text">
-                                        Transaksi Aman
+                                        Daftar Koperasi Online
                                     </div>
                                 </div>
                                 <div className="floating-card card-2">
-                                    <div className="card-icon">📱</div>
-                                    <div className="card-text">Akses 24/7</div>
+                                    <div className="card-icon">✅</div>
+                                    <div className="card-text">
+                                        Verifikasi Mudah
+                                    </div>
                                 </div>
                                 <div className="floating-card card-3">
-                                    <div className="card-icon">🔒</div>
+                                    <div className="card-icon">📄</div>
                                     <div className="card-text">
-                                        Keamanan Terjamin
+                                        Laporan Bulanan Digital
                                     </div>
                                 </div>
                                 <div className="hero-blob"></div>
@@ -950,10 +1060,11 @@ const Welcome: React.FC = () => {
                             transform: `translateY(${parallaxOffset * 0.1}px)`,
                         }}
                     >
-                        <h2>Proses Pendaftaran</h2>
+                        <h2>Alur Layanan Koperasi</h2>
                         <div className="section-line"></div>
                         <p>
-                            Bergabunglah dengan koperasi dalam 4 langkah mudah
+                            Ikuti langkah-langkah berikut untuk menjadi anggota,
+                            mengajukan permohonan, dan mengirim laporan bulanan
                         </p>
                     </div>
 
@@ -965,6 +1076,7 @@ const Welcome: React.FC = () => {
                     >
                         <div className="track-line"></div>
 
+                        {/* Step 1: Daftar Akun */}
                         <div
                             className="track-step"
                             data-step="1"
@@ -978,20 +1090,34 @@ const Welcome: React.FC = () => {
                                 <div className="step-icon">📝</div>
                             </div>
                             <div className="step-content">
-                                <h3>Isi Formulir</h3>
+                                <h3>Buat Akun Anggota</h3>
                                 <p>
-                                    Lengkapi data diri dan dokumen yang
-                                    diperlukan
+                                    Lengkapi formulir pendaftaran akun dengan
+                                    data diri yang valid:
                                 </p>
                                 <ul>
-                                    <li>KTP yang masih berlaku</li>
-                                    <li>Kartu Keluarga</li>
-                                    <li>Pas foto 3x4</li>
-                                    <li>NPWP (opsional)</li>
+                                    <li>
+                                        Nama lengkap, email, username, no HP,
+                                        alamat
+                                    </li>
+                                    <li>Buat password & konfirmasi password</li>
+                                    <li>Pastikan data benar dan email aktif</li>
                                 </ul>
+                                <p
+                                    style={{
+                                        marginTop: 8,
+                                        color: "#64748b",
+                                        fontSize: "0.95rem",
+                                    }}
+                                >
+                                    Setelah akun berhasil dibuat, login ke
+                                    sistem untuk melanjutkan pengajuan
+                                    permohonan koperasi.
+                                </p>
                             </div>
                         </div>
 
+                        {/* Step 2: Pengajuan Permohonan Koperasi */}
                         <div
                             className="track-step"
                             data-step="2"
@@ -1002,22 +1128,36 @@ const Welcome: React.FC = () => {
                             }}
                         >
                             <div className="step-circle">
-                                <div className="step-icon">💰</div>
+                                <div className="step-icon">📄</div>
                             </div>
                             <div className="step-content">
-                                <h3>Bayar Simpanan Pokok</h3>
+                                <h3>Ajukan Permohonan Koperasi</h3>
                                 <p>
-                                    Setorkan simpanan pokok sebesar Rp 100.000
+                                    Setelah login, ajukan permohonan dengan
+                                    mengunggah dokumen berikut:
                                 </p>
                                 <ul>
-                                    <li>Transfer bank</li>
-                                    <li>Pembayaran tunai</li>
-                                    <li>E-wallet</li>
-                                    <li>Cicilan (tersedia)</li>
+                                    <li>Susunan Pengurus (PDF, max 2MB)</li>
+                                    <li>Surat Non Pengurus (PDF, max 2MB)</li>
+                                    <li>Surat Kuasa (PDF, max 2MB)</li>
+                                    <li>Bukti Modal (PDF, max 2MB)</li>
+                                    <li>KTP (PDF, max 2MB)</li>
                                 </ul>
+                                <p
+                                    style={{
+                                        marginTop: 8,
+                                        color: "#64748b",
+                                        fontSize: "0.95rem",
+                                    }}
+                                >
+                                    Permohonan hanya dapat diajukan ulang jika
+                                    permohonan terakhir Anda ditolak. Tunggu
+                                    proses verifikasi dari admin koperasi.
+                                </p>
                             </div>
                         </div>
 
+                        {/* Step 3: Verifikasi Permohonan */}
                         <div
                             className="track-step"
                             data-step="3"
@@ -1028,23 +1168,36 @@ const Welcome: React.FC = () => {
                             }}
                         >
                             <div className="step-circle">
-                                <div className="step-icon">✅</div>
+                                <div className="step-icon">🔎</div>
                             </div>
                             <div className="step-content">
-                                <h3>Verifikasi</h3>
+                                <h3>Verifikasi Permohonan</h3>
                                 <p>
-                                    Tim kami akan memverifikasi dokumen dalam
-                                    1-2 hari
+                                    Tim koperasi akan memeriksa kelengkapan dan
+                                    keabsahan dokumen permohonan Anda:
                                 </p>
                                 <ul>
-                                    <li>Pengecekan dokumen</li>
-                                    <li>Konfirmasi data</li>
-                                    <li>Validasi pembayaran</li>
-                                    <li>Notifikasi WhatsApp</li>
+                                    <li>Pengecekan dokumen dan data</li>
+                                    <li>Validasi status permohonan</li>
+                                    <li>
+                                        Notifikasi hasil verifikasi melalui
+                                        sistem
+                                    </li>
                                 </ul>
+                                <p
+                                    style={{
+                                        marginTop: 8,
+                                        color: "#64748b",
+                                        fontSize: "0.95rem",
+                                    }}
+                                >
+                                    Jika permohonan diterima, Anda dapat
+                                    mengakses fitur laporan bulanan.
+                                </p>
                             </div>
                         </div>
 
+                        {/* Step 4: Laporan Bulanan */}
                         <div
                             className="track-step"
                             data-step="4"
@@ -1055,19 +1208,35 @@ const Welcome: React.FC = () => {
                             }}
                         >
                             <div className="step-circle">
-                                <div className="step-icon">🎉</div>
+                                <div className="step-icon">📆</div>
                             </div>
                             <div className="step-content">
-                                <h3>Anggota Resmi</h3>
+                                <h3>Kirim Laporan Bulanan</h3>
                                 <p>
-                                    Selamat! Anda resmi menjadi anggota koperasi
+                                    Setelah permohonan diterima, Anda wajib
+                                    mengirim laporan bulanan:
                                 </p>
                                 <ul>
-                                    <li>Kartu anggota digital</li>
-                                    <li>Akses aplikasi mobile</li>
-                                    <li>Buku simpanan digital</li>
-                                    <li>Konsultasi gratis</li>
+                                    <li>Pilih periode laporan</li>
+                                    <li>
+                                        Unggah file laporan bulanan (PDF, max
+                                        2MB)
+                                    </li>
+                                    <li>
+                                        Pastikan laporan belum pernah diterima
+                                        untuk periode yang sama
+                                    </li>
                                 </ul>
+                                <p
+                                    style={{
+                                        marginTop: 8,
+                                        color: "#64748b",
+                                        fontSize: "0.95rem",
+                                    }}
+                                >
+                                    Laporan akan diverifikasi oleh admin. Status
+                                    laporan dapat dipantau di dashboard.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -1078,13 +1247,42 @@ const Welcome: React.FC = () => {
                             transform: `translateY(${parallaxOffset * 0.03}px)`,
                         }}
                     >
-                        <button className="primary-button registration-button">
-                            <span>Mulai Pendaftaran</span>
-                            <span className="button-arrow">→</span>
-                        </button>
-                        <p className="cta-note">
-                            Proses pendaftaran gratis dan mudah!
-                        </p>
+                        {!user ? (
+                            <>
+                                <button
+                                    className="primary-button registration-button"
+                                    onClick={() =>
+                                        (window.location.href = "/login")
+                                    }
+                                >
+                                    <span>Mulai Daftar Akun</span>
+                                    <span className="button-arrow">→</span>
+                                </button>
+                                <p className="cta-note">
+                                    Daftar akun gratis untuk memulai proses
+                                    permohonan koperasi!
+                                </p>
+                            </>
+                        ) : (
+                            <div className="registration-success-message">
+                                <h3>Selamat datang di SILUK!</h3>
+                                <p>
+                                    Anda sudah terdaftar sebagai anggota.
+                                    Silakan lanjutkan pengajuan permohonan atau
+                                    kirim laporan bulanan melalui dashboard.
+                                </p>
+                                <a
+                                    href="/profile-pendaftar"
+                                    className="primary-button"
+                                    style={{
+                                        marginTop: "1.5rem",
+                                        display: "inline-block",
+                                    }}
+                                >
+                                    Buka Dashboard Anggota
+                                </a>
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div className="shape-divider">
@@ -1092,8 +1290,6 @@ const Welcome: React.FC = () => {
                     <div className="shape shape2"></div>
                 </div>
             </section>
-
-           
 
             {/* Organization Structure Section */}
             <section
@@ -1110,70 +1306,7 @@ const Welcome: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="org-chart">
-                        <div className="org-level level-1">
-                            <div className="position-card chairman">
-                                <div className="position-icon">👑</div>
-                                <h3>Ketua Koperasi</h3>
-                                <p>Drs. Ahmad Surya, M.M</p>
-                                <span className="period">
-                                    Periode 2023-2026
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="org-level level-2">
-                            <div className="position-card">
-                                <div className="position-icon">📋</div>
-                                <h3>Sekretaris</h3>
-                                <p>Siti Nurhaliza, S.E</p>
-                            </div>
-                            <div className="position-card">
-                                <div className="position-icon">💰</div>
-                                <h3>Bendahara</h3>
-                                <p>Bambang Hartono, S.Ak</p>
-                            </div>
-                        </div>
-
-                        <div className="org-level level-3">
-                            <div className="position-card">
-                                <div className="position-icon">👥</div>
-                                <h3>Manager Keanggotaan</h3>
-                                <p>Rina Susanti, S.Sos</p>
-                            </div>
-                            <div className="position-card">
-                                <div className="position-icon">📊</div>
-                                <h3>Manager Keuangan</h3>
-                                <p>Agus Wijaya, S.E</p>
-                            </div>
-                            <div className="position-card">
-                                <div className="position-icon">🏢</div>
-                                <h3>Manager Usaha</h3>
-                                <p>Diana Sari, M.B.A</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="advisory-board">
-                        <h3>Badan Pengawas</h3>
-                        <div className="advisory-members">
-                            <div className="advisor-card">
-                                <div className="advisor-icon">🔍</div>
-                                <h4>Ketua Pengawas</h4>
-                                <p>Prof. Dr. Sutrisno, M.Ec</p>
-                            </div>
-                            <div className="advisor-card">
-                                <div className="advisor-icon">⚖️</div>
-                                <h4>Anggota Pengawas</h4>
-                                <p>Ir. Muslimin, M.M</p>
-                            </div>
-                            <div className="advisor-card">
-                                <div className="advisor-icon">📈</div>
-                                <h4>Anggota Pengawas</h4>
-                                <p>Dra. Kartika, M.Si</p>
-                            </div>
-                        </div>
-                    </div>
+                    <OrganizationalStructure />
                 </div>
             </section>
 
@@ -1184,59 +1317,8 @@ const Welcome: React.FC = () => {
                 className="vision-section"
             >
                 <div className="container">
-                    <div className="vision-grid">
-                        <div className="vision-card">
-                            <div className="vision-icon">🎯</div>
-                            <h2>Visi</h2>
-                            <div className="section-line"></div>
-                            <p>
-                                Menjadi koperasi digital terdepan yang
-                                memberdayakan ekonomi rakyat melalui inovasi
-                                teknologi finansial dan pelayanan yang
-                                berkualitas tinggi pada tahun 2030.
-                            </p>
-                        </div>
-
-                        <div className="mission-card">
-                            <div className="mission-icon">🚀</div>
-                            <h2>Misi</h2>
-                            <div className="section-line"></div>
-                            <div className="mission-list">
-                                <div className="mission-item">
-                                    <div className="mission-number">01</div>
-                                    <p>
-                                        Memberikan layanan keuangan digital yang
-                                        mudah, aman, dan terpercaya untuk semua
-                                        anggota
-                                    </p>
-                                </div>
-                                <div className="mission-item">
-                                    <div className="mission-number">02</div>
-                                    <p>
-                                        Mengembangkan program-program
-                                        pemberdayaan ekonomi untuk meningkatkan
-                                        kesejahteraan anggota
-                                    </p>
-                                </div>
-                                <div className="mission-item">
-                                    <div className="mission-number">03</div>
-                                    <p>
-                                        Menerapkan tata kelola yang transparan
-                                        dan akuntabel dalam setiap aspek
-                                        operasional
-                                    </p>
-                                </div>
-                                <div className="mission-item">
-                                    <div className="mission-number">04</div>
-                                    <p>
-                                        Berkontribusi aktif dalam pembangunan
-                                        ekonomi kerakyatan dan kewirausahaan
-                                        lokal
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    {/* Komponen VisionMission untuk load data dari API */}
+                    <VisionMission />
 
                     <div className="values-section">
                         <h3>Nilai-Nilai Kami</h3>
@@ -1291,255 +1373,338 @@ const Welcome: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="news-grid">
-                        <div className="news-card featured">
-                            <div className="news-badge">Headline</div>
-                            <div className="news-image">📊</div>
-                            <div className="news-content">
-                                <div className="news-meta">
-                                    <span className="news-date">
-                                        3 Juli 2025
-                                    </span>
-                                    <span className="news-category">
-                                        Keuangan
-                                    </span>
-                                </div>
-                                <h3>Pembagian SHU 2024 Meningkat 25%</h3>
-                                <p>
-                                    Koperasi SILUK berhasil mencatat kinerja
-                                    gemilang di tahun 2024 dengan peningkatan
-                                    SHU sebesar 25% dibanding tahun sebelumnya.
-                                </p>
-                                <button className="read-more">
-                                    Baca Selengkapnya →
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="news-card">
-                            <div className="news-image">🏆</div>
-                            <div className="news-content">
-                                <div className="news-meta">
-                                    <span className="news-date">
-                                        1 Juli 2025
-                                    </span>
-                                    <span className="news-category">
-                                        Prestasi
-                                    </span>
-                                </div>
-                                <h3>
-                                    Raih Penghargaan Koperasi Digital Terbaik
-                                </h3>
-                                <p>
-                                    SILUK meraih penghargaan sebagai koperasi
-                                    digital terbaik se-Indonesia dalam ajang
-                                    Koperasi Awards 2025.
-                                </p>
-                                <button className="read-more">
-                                    Baca Selengkapnya →
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="news-card">
-                            <div className="news-image">📱</div>
-                            <div className="news-content">
-                                <div className="news-meta">
-                                    <span className="news-date">
-                                        28 Juni 2025
-                                    </span>
-                                    <span className="news-category">
-                                        Teknologi
-                                    </span>
-                                </div>
-                                <h3>Peluncuran Aplikasi Mobile SILUK 2.0</h3>
-                                <p>
-                                    Aplikasi mobile SILUK versi 2.0 diluncurkan
-                                    dengan fitur-fitur baru yang lebih
-                                    user-friendly.
-                                </p>
-                                <button className="read-more">
-                                    Baca Selengkapnya →
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="news-card">
-                            <div className="news-image">👥</div>
-                            <div className="news-content">
-                                <div className="news-meta">
-                                    <span className="news-date">
-                                        25 Juni 2025
-                                    </span>
-                                    <span className="news-category">
-                                        Keanggotaan
-                                    </span>
-                                </div>
-                                <h3>Program Keanggotaan Baru untuk UMKM</h3>
-                                <p>
-                                    Diluncurkan program khusus untuk mendukung
-                                    pengembangan usaha mikro, kecil, dan
-                                    menengah.
-                                </p>
-                                <button className="read-more">
-                                    Baca Selengkapnya →
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="news-card">
-                            <div className="news-image">💼</div>
-                            <div className="news-content">
-                                <div className="news-meta">
-                                    <span className="news-date">
-                                        22 Juni 2025
-                                    </span>
-                                    <span className="news-category">Usaha</span>
-                                </div>
-                                <h3>Ekspansi Unit Usaha ke 3 Kota Baru</h3>
-                                <p>
-                                    Koperasi SILUK memperluas jangkauan unit
-                                    usaha ke Bandung, Surabaya, dan Medan.
-                                </p>
-                                <button className="read-more">
-                                    Baca Selengkapnya →
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="news-card">
-                            <div className="news-image">🎓</div>
-                            <div className="news-content">
-                                <div className="news-meta">
-                                    <span className="news-date">
-                                        20 Juni 2025
-                                    </span>
-                                    <span className="news-category">
-                                        Edukasi
-                                    </span>
-                                </div>
-                                <h3>Workshop Literasi Keuangan Digital</h3>
-                                <p>
-                                    Penyelenggaraan workshop gratis untuk
-                                    meningkatkan literasi keuangan digital
-                                    anggota koperasi.
-                                </p>
-                                <button className="read-more">
-                                    Baca Selengkapnya →
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="news-pagination">
-                        <button className="pagination-btn prev">
-                            ← Sebelumnya
-                        </button>
-                        <div className="pagination-numbers">
-                            <button className="page-btn active">1</button>
-                            <button className="page-btn">2</button>
-                            <button className="page-btn">3</button>
-                            <button className="page-btn">...</button>
-                            <button className="page-btn">10</button>
-                        </div>
-                        <button className="pagination-btn next">
-                            Selanjutnya →
-                        </button>
-                    </div>
+                    <BeritaInformation />
                 </div>
             </section>
 
             {/* Footer */}
-            <footer className="footer">
+            <footer
+                className="footer"
+                style={{
+                    padding: "3rem 0 1.5rem 0",
+                    background: theme === "dark" ? "#18181b" : "#f3f4f6",
+                }}
+            >
                 <div className="container">
-                    <div className="footer-grid">
-                        <div className="footer-brand">
-                            <div className="footer-logo">
-                                <div className="logo">
+                    <div
+                        className="footer-grid"
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: "1.2fr 1fr 1.2fr",
+                            gap: "2.5rem",
+                            alignItems: "flex-start",
+                            minHeight: "260px",
+                        }}
+                    >
+                        {/* Brand & Social */}
+                        <div className="footer-brand" style={{ minWidth: 0 }}>
+                            <div
+                                className="footer-logo"
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.75rem",
+                                }}
+                            >
+                                <div
+                                    className="logo"
+                                    style={{
+                                        fontSize: "2rem",
+                                        background: "#2563eb",
+                                        color: "#fff",
+                                        borderRadius: "50%",
+                                        width: "2.5rem",
+                                        height: "2.5rem",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                    }}
+                                >
                                     <span>S</span>
                                 </div>
                                 <div>
-                                    <h3>SILUK</h3>
-                                    <p>Sistem Layanan Koperasi</p>
+                                    <h3
+                                        style={{
+                                            margin: 0,
+                                            fontWeight: 700,
+                                            fontSize: "1.25rem",
+                                        }}
+                                    >
+                                        SILUK
+                                    </h3>
+                                    <p
+                                        style={{
+                                            margin: 0,
+                                            fontSize: "0.95rem",
+                                            color: "#6b7280",
+                                        }}
+                                    >
+                                        Sistem Layanan Koperasi
+                                    </p>
                                 </div>
                             </div>
-                            <p>
+                            <p
+                                style={{
+                                    margin: "1rem 0 1.25rem 0",
+                                    fontSize: "1rem",
+                                    color: "#4b5563",
+                                    maxWidth: 320,
+                                }}
+                            >
                                 Platform digital terpercaya untuk mengelola
                                 keuangan koperasi dengan mudah dan aman.
                             </p>
-                            <div className="social-links">
-                                <a href="#" className="social-icon">
-                                    F
+                            <div
+                                className="social-links"
+                                style={{ display: "flex", gap: "0.75rem" }}
+                            >
+                                <a
+                                    href="#"
+                                    className="social-icon"
+                                    aria-label="Facebook"
+                                    style={{ fontSize: "1.25rem" }}
+                                >
+                                    📘
                                 </a>
-                                <a href="#" className="social-icon">
-                                    T
+                                <a
+                                    href="#"
+                                    className="social-icon"
+                                    aria-label="Twitter"
+                                    style={{ fontSize: "1.25rem" }}
+                                >
+                                    🐦
                                 </a>
-                                <a href="#" className="social-icon">
-                                    I
+                                <a
+                                    href="#"
+                                    className="social-icon"
+                                    aria-label="Instagram"
+                                    style={{ fontSize: "1.25rem" }}
+                                >
+                                    📸
                                 </a>
-                                <a href="#" className="social-icon">
-                                    L
+                                <a
+                                    href="#"
+                                    className="social-icon"
+                                    aria-label="LinkedIn"
+                                    style={{ fontSize: "1.25rem" }}
+                                >
+                                    💼
                                 </a>
                             </div>
                         </div>
 
-                        <div className="footer-links">
-                            <h4>Layanan</h4>
-                            <ul>
+                        {/* Navigation */}
+                        <div
+                            className="footer-links modern-nav"
+                            style={{ minWidth: 0 }}
+                        >
+                            <h4
+                                style={{
+                                    marginBottom: "1rem",
+                                    fontWeight: 600,
+                                }}
+                            >
+                                Navigasi
+                            </h4>
+                            <ul
+                                style={{
+                                    listStyle: "none",
+                                    padding: 0,
+                                    margin: 0,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "0.75rem",
+                                }}
+                            >
                                 <li>
-                                    <a href="#">Simpanan</a>
+                                    <a
+                                        href="#home"
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "0.5rem",
+                                            color: "#2563eb",
+                                            textDecoration: "none",
+                                        }}
+                                    >
+                                        <span className="footer-nav-icon">
+                                            🏠
+                                        </span>
+                                        <span>Beranda</span>
+                                    </a>
                                 </li>
                                 <li>
-                                    <a href="#">Pinjaman</a>
+                                    <a
+                                        href="#pendaftaran"
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "0.5rem",
+                                            color: "#2563eb",
+                                            textDecoration: "none",
+                                        }}
+                                    >
+                                        <span className="footer-nav-icon">
+                                            📝
+                                        </span>
+                                        <span>Pendaftaran</span>
+                                    </a>
                                 </li>
                                 <li>
-                                    <a href="#">Investasi</a>
+                                    <a
+                                        href="#struktur"
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "0.5rem",
+                                            color: "#2563eb",
+                                            textDecoration: "none",
+                                        }}
+                                    >
+                                        <span className="footer-nav-icon">
+                                            🏢
+                                        </span>
+                                        <span>Struktur</span>
+                                    </a>
                                 </li>
                                 <li>
-                                    <a href="#">Asuransi</a>
+                                    <a
+                                        href="#visi"
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "0.5rem",
+                                            color: "#2563eb",
+                                            textDecoration: "none",
+                                        }}
+                                    >
+                                        <span className="footer-nav-icon">
+                                            🎯
+                                        </span>
+                                        <span>Visi & Misi</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="#berita"
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "0.5rem",
+                                            color: "#2563eb",
+                                            textDecoration: "none",
+                                        }}
+                                    >
+                                        <span className="footer-nav-icon">
+                                            📰
+                                        </span>
+                                        <span>Berita</span>
+                                    </a>
                                 </li>
                             </ul>
                         </div>
 
-                        <div className="footer-links">
-                            <h4>Perusahaan</h4>
-                            <ul>
-                                <li>
-                                    <a href="#">Tentang Kami</a>
+                        {/* Contact & Newsletter */}
+                        <div className="footer-extra" style={{ minWidth: 0 }}>
+                            <h4
+                                style={{
+                                    marginBottom: "1rem",
+                                    fontWeight: 600,
+                                }}
+                            >
+                                Kontak Kami
+                            </h4>
+                            <ul
+                                className="footer-contact-list"
+                                style={{
+                                    listStyle: "none",
+                                    padding: 0,
+                                    margin: 0,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "0.5rem",
+                                }}
+                            >
+                                <li
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "0.5rem",
+                                    }}
+                                >
+                                    <span className="footer-contact-icon">
+                                        📍
+                                    </span>
+                                    <span>Jl. Koperasi No. 123, Jakarta</span>
                                 </li>
-                                <li>
-                                    <a href="#">Karir</a>
+                                <li
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "0.5rem",
+                                    }}
+                                >
+                                    <span className="footer-contact-icon">
+                                        📞
+                                    </span>
+                                    <a
+                                        href="tel:+622112345678"
+                                        style={{
+                                            color: "#2563eb",
+                                            textDecoration: "none",
+                                        }}
+                                    >
+                                        +62 21 1234 5678
+                                    </a>
                                 </li>
-                                <li>
-                                    <a href="#">Blog</a>
+                                <li
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "0.5rem",
+                                    }}
+                                >
+                                    <span className="footer-contact-icon">
+                                        ✉️
+                                    </span>
+                                    <a
+                                        href="mailto:info@siluk.co.id"
+                                        style={{
+                                            color: "#2563eb",
+                                            textDecoration: "none",
+                                        }}
+                                    >
+                                        info@siluk.co.id
+                                    </a>
                                 </li>
-                                <li>
-                                    <a href="#">Kontak</a>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div className="footer-links">
-                            <h4>Legal</h4>
-                            <ul>
-                                <li>
-                                    <a href="#">Privasi</a>
-                                </li>
-                                <li>
-                                    <a href="#">Syarat & Ketentuan</a>
-                                </li>
-                                <li>
-                                    <a href="#">FAQ</a>
-                                </li>
-                                <li>
-                                    <a href="#">Bantuan</a>
+                                <li
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "0.5rem",
+                                    }}
+                                >
+                                    <span className="footer-contact-icon">
+                                        ⏰
+                                    </span>
+                                    <span>
+                                        Senin - Jumat, 08.00 - 17.00 WIB
+                                    </span>
                                 </li>
                             </ul>
                         </div>
                     </div>
 
-                    <div className="copyright">
-                        <p>
+                    <div
+                        className="copyright"
+                        style={{
+                            marginTop: "2.5rem",
+                            textAlign: "center",
+                            color: "#6b7280",
+                            fontSize: "0.95rem",
+                        }}
+                    >
+                        <p style={{ margin: 0 }}>
                             &copy; 2025 SILUK. Semua hak dilindungi
                             undang-undang.
                         </p>
