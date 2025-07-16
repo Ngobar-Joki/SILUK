@@ -20,7 +20,8 @@ return new class extends Migration
             $table->string('username')->unique();
             $table->string('password');
             $table->enum('role', [ 'operator', 'pendaftar'])->default('pendaftar');
-             $table->boolean('verified')->default(false);
+            $table->boolean('verified')->default(false);
+            $table->json('read_notifications')->nullable(); // tambahkan ini
      
            
             $table->rememberToken();

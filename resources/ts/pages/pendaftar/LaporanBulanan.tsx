@@ -111,6 +111,14 @@ const LaporanBulanan: React.FC = () => {
         setErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
+    // Pindahkan handleReset sebelum handleSubmit
+    const handleReset = () => {
+        setFormData({ ...initialForm, user_id: formData.user_id });
+        setFileInput(null);
+        setEditingId(null);
+        setErrors({});
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -151,29 +159,25 @@ const LaporanBulanan: React.FC = () => {
                 );
                 handleReset();
                 fetchLaporans();
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
+                setTimeout(() => {}, 1000);
             } else {
+                // Selalu tampilkan pesan dari server jika ada
                 showToast("error", res.data.message || "Gagal menyimpan data");
             }
         } catch (err: any) {
+            // Selalu tampilkan pesan error dari server jika ada
+            const serverMsg = err?.response?.data?.message;
             if (err.response?.status === 422 && err.response.data.errors) {
                 setErrors(err.response.data.errors);
-                showToast("error", "Validasi gagal");
+                showToast("error", serverMsg || "Validasi gagal");
+            } else if (serverMsg) {
+                showToast("error", serverMsg);
             } else {
                 showToast("error", "Terjadi kesalahan saat menyimpan data");
             }
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleReset = () => {
-        setFormData({ ...initialForm, user_id: formData.user_id });
-        setFileInput(null);
-        setEditingId(null);
-        setErrors({});
     };
 
     // Pagination logic

@@ -69,7 +69,7 @@ class DaftarLaporanController extends Controller
                 $no_hp = '62' . substr($user->no_hp, 1);
                 
                 // Add random delay between 5-10 seconds
-                $delay = rand(5, 10);
+                $delay = rand(3, 5);
                 Log::info('Adding delay before sending WhatsApp notification', [
                     'laporan_id' => $id,
                     'delay_seconds' => $delay
@@ -125,7 +125,7 @@ class DaftarLaporanController extends Controller
                 $no_hp = '62' . substr($user->no_hp, 1);
                 
                 // Add random delay between 5-10 seconds
-                $delay = rand(5, 10);
+                $delay = rand(3, 5);
                 Log::info('Adding delay before sending WhatsApp notification', [
                     'laporan_id' => $id,
                     'delay_seconds' => $delay

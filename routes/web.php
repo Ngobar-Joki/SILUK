@@ -51,10 +51,24 @@ Route::put('/profile-pendaftar', [App\Http\Controllers\ProfilePendaftarControlle
 // API untuk mengambil data user yang sedang login
 Route::middleware(['auth'])->get('/api/user', [AuthController::class, 'getUser'])->name('api.user');
 
+// Public API routes (accessible without authentication)
+Route::get('/api/struktur-organisasi/public', [App\Http\Controllers\StrukturOrganisasiController::class, 'fetchedStrukturOrganisasiPublic'])->name('api.struktur-organisasi.public');
+
+// Public API route for visi misi (accessible without authentication)
+Route::get('/api/visi-misi/public', [App\Http\Controllers\VisiMisiController::class, 'fetchedVisiMisi'])->name('api.visi-misi.public');
+
+// Public API route for berita (accessible without authentication)
+Route::get('/api/berita/public', [App\Http\Controllers\BeritaController::class, 'fetchedBeritaPublic'])->name('api.berita.public');
+
+// Tambahkan route API untuk notifikasi navbar
+Route::middleware(['auth'])->get('/api/notif-navbar', [App\Http\Controllers\NotifNavbarController::class, 'index'])->name('api.notif-navbar');
+Route::middleware(['auth'])->post('/api/notif-navbar/mark-all-read', [App\Http\Controllers\NotifNavbarController::class, 'markAllRead'])->name('api.notif-navbar.markAllRead');
+
 Route::middleware(['auth', 'role:operator'])->group(function () {
 
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/api/dashboard', [DashboardController::class, 'getDashboardData'])->name('api.dashboard');
 
   
     // VisiMisi routes
