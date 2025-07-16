@@ -516,22 +516,26 @@ const Welcome: React.FC = () => {
                                         </a>
                                     </li>
                                 )}
-                                <li
-                                    className={
-                                        activeSection === "laporan"
-                                            ? "active"
-                                            : ""
-                                    }
-                                >
-                                    <a
-                                        href="#laporan"
-                                        onClick={(e) =>
-                                            handleNavClick(e, "laporan")
+                                {user && ( // Only show Laporan when logged in
+                                    <li
+                                        className={
+                                            activeSection === "laporan"
+                                                ? "active"
+                                                : ""
                                         }
                                     >
-                                        Laporan
-                                    </a>
-                                </li>
+                                        <a
+                                            href="/laporan-bulanan"
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.25rem'
+                                            }}
+                                        >
+                                            Laporan
+                                        </a>
+                                    </li>
+                                )}
                                 <li
                                     className={
                                         activeSection === "struktur"
@@ -641,16 +645,26 @@ const Welcome: React.FC = () => {
                                     </a>
                                 </li>
                             )}
-                            <li>
-                                <a
-                                    href="#laporan"
-                                    onClick={(e) =>
-                                        handleNavClick(e, "laporan")
+                            {user && ( // Only show Laporan when logged in
+                                <li
+                                    className={
+                                        activeSection === "laporan"
+                                            ? "active"
+                                            : ""
                                     }
                                 >
-                                    Laporan Bulanan
-                                </a>
-                            </li>
+                                    <a
+                                        href="/laporan-bulanan"
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.25rem'
+                                        }}
+                                    >
+                                        Laporan
+                                    </a>
+                                </li>
+                            )}
                             <li>
                                 <a
                                     href="#struktur"
@@ -1079,112 +1093,7 @@ const Welcome: React.FC = () => {
                 </div>
             </section>
 
-            {/* Monthly Report Section */}
-            <section
-                id="laporan"
-                ref={sectionRefs.laporan}
-                className="report-section"
-            >
-                <div className="container">
-                    <div className="section-header">
-                        <h2>Laporan Bulanan</h2>
-                        <div className="section-line"></div>
-                        <p>
-                            Akses laporan keuangan bulanan dengan mudah dan
-                            transparan
-                        </p>
-                    </div>
-
-                    <div className="report-grid">
-                        <div className="report-card">
-                            <div className="report-icon">📊</div>
-                            <h3>Laporan Keuangan</h3>
-                            <p>
-                                Laporan lengkap posisi keuangan koperasi setiap
-                                bulan
-                            </p>
-                            <ul>
-                                <li>✓ Neraca keuangan</li>
-                                <li>✓ Laba rugi</li>
-                                <li>✓ Arus kas</li>
-                                <li>✓ Analisis rasio</li>
-                            </ul>
-                            <button className="report-button">
-                                <span>Download PDF</span>
-                                <span>📄</span>
-                            </button>
-                        </div>
-
-                        <div className="report-card">
-                            <div className="report-icon">👥</div>
-                            <h3>Laporan Keanggotaan</h3>
-                            <p>
-                                Data perkembangan anggota dan aktivitas bulanan
-                            </p>
-                            <ul>
-                                <li>✓ Jumlah anggota aktif</li>
-                                <li>✓ Anggota baru</li>
-                                <li>✓ Tingkat partisipasi</li>
-                                <li>✓ Demografis anggota</li>
-                            </ul>
-                            <button className="report-button">
-                                <span>Download PDF</span>
-                                <span>📄</span>
-                            </button>
-                        </div>
-
-                        <div className="report-card">
-                            <div className="report-icon">💼</div>
-                            <h3>Laporan Usaha</h3>
-                            <p>
-                                Perkembangan unit usaha dan investasi koperasi
-                            </p>
-                            <ul>
-                                <li>✓ Omzet unit usaha</li>
-                                <li>✓ ROI investasi</li>
-                                <li>✓ Proyeksi bisnis</li>
-                                <li>✓ Analisis pasar</li>
-                            </ul>
-                            <button className="report-button">
-                                <span>Download PDF</span>
-                                <span>📄</span>
-                            </button>
-                        </div>
-
-                        <div className="report-card">
-                            <div className="report-icon">🏆</div>
-                            <h3>Laporan SHU</h3>
-                            <p>
-                                Sisa Hasil Usaha dan pembagiannya kepada anggota
-                            </p>
-                            <ul>
-                                <li>✓ Total SHU</li>
-                                <li>✓ Pembagian per anggota</li>
-                                <li>✓ Mekanisme distribusi</li>
-                                <li>✓ Proyeksi tahun depan</li>
-                            </ul>
-                            <button className="report-button">
-                                <span>Download PDF</span>
-                                <span>📄</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="report-archive">
-                        <h3>Arsip Laporan</h3>
-                        <div className="archive-years">
-                            <button className="year-button active">2025</button>
-                            <button className="year-button">2024</button>
-                            <button className="year-button">2023</button>
-                            <button className="year-button">2022</button>
-                        </div>
-                        <p className="archive-note">
-                            Semua laporan tersedia dalam format PDF yang dapat
-                            diunduh dan dicetak
-                        </p>
-                    </div>
-                </div>
-            </section>
+           
 
             {/* Organization Structure Section */}
             <section

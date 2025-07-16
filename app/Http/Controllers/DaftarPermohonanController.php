@@ -76,6 +76,14 @@ class DaftarPermohonanController extends Controller
                     . "Admin SILUK.\n";
                 $no_hp = '62' . substr($user->no_hp, 1);
                 
+                // Add random delay between 5-10 seconds
+                $delay = rand(3, 5);
+                Log::info('Adding delay before sending WhatsApp notification', [
+                    'permohonan_id' => $id,
+                    'delay_seconds' => $delay
+                ]);
+                sleep($delay);
+                
                 $whatsappService = new WhatsAppService();
                 $whatsappResult = $whatsappService->sendMessage($no_hp, $message);
                 
@@ -83,6 +91,7 @@ class DaftarPermohonanController extends Controller
                     'permohonan_id' => $id,
                     'user_id' => $user->id,
                     'phone' => $no_hp,
+                    'delay_applied' => $delay,
                     'whatsapp_response' => $whatsappResult
                 ]);
             }
@@ -134,6 +143,14 @@ class DaftarPermohonanController extends Controller
                     . "Admin SILUK.\n";
                 $no_hp = '62' . substr($user->no_hp, 1);
                 
+                // Add random delay between 5-10 seconds
+                $delay = rand(3, 5);
+                Log::info('Adding delay before sending WhatsApp notification', [
+                    'permohonan_id' => $id,
+                    'delay_seconds' => $delay
+                ]);
+                sleep($delay);
+                
                 $whatsappService = new WhatsAppService();
                 $whatsappResult = $whatsappService->sendMessage($no_hp, $message);
                 
@@ -142,6 +159,7 @@ class DaftarPermohonanController extends Controller
                     'user_id' => $user->id,
                     'phone' => $no_hp,
                     'catatan' => $permohonan->catatan,
+                    'delay_applied' => $delay,
                     'whatsapp_response' => $whatsappResult
                 ]);
             }
