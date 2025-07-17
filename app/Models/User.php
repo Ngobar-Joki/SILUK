@@ -27,6 +27,7 @@ class User extends Authenticatable
         'role',
         'accessibility_settings',
         'verified',
+        'read_notifications', // tambahkan ini
     ];
 
     /**
@@ -51,11 +52,9 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'accessibility_settings' => 'array',
+            'read_notifications' => 'array', // tambahkan ini
         ];
     }
     
-    public function verify_users()
-    {
-        return $this->hasMany(verify_user::class, 'user_id');
-    }
+   
 }

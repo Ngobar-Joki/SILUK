@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import Layout from "../components/layout/Layout";
+import Layout from "../../components/layout/Layout";
 import {
     Edit,
     Save,
@@ -45,15 +45,27 @@ const BeritaPage: React.FC = () => {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // New states for search and pagination
+    const [search, setSearch] = useState<string>("");
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [pageSize] = useState<number>(5);
+    const [totalPages, setTotalPages] = useState<number>(1);
+
     useEffect(() => {
         fetchBerita();
-    }, []);
+        // eslint-disable-next-line
+    }, [search, currentPage, pageSize]);
 
     const fetchBerita = async () => {
         try {
             setLoading(true);
-            const response = await axios.get("/berita/fetched");
-            setBeritaList(response.data.beritas);
+            const response = await axios.get("/berita/fetched", {
+                params: { search, page: currentPage, pageSize },
+            });
+            if (response.data.success) {
+                setBeritaList(response.data.beritas.data);
+                setTotalPages(response.data.beritas.last_page);
+            }
         } catch (error) {
             console.error("Error fetching berita:", error);
             setMessage({ text: "Gagal memuat data berita", type: "error" });
@@ -392,7 +404,7 @@ const BeritaPage: React.FC = () => {
                     <button
                         type="button"
                         onClick={handleCancel}
-                        className="group/cancel flex items-center gap-2 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium"
+                         className="relative z-10 group/cancel flex items-center gap-2 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium"
                     >
                         <X className="w-4 h-4 group-hover/cancel:rotate-90 transition-transform" />
                         Batal
@@ -520,6 +532,41 @@ const BeritaPage: React.FC = () => {
         );
     };
 
+    // Pagination Controls
+    const renderPagination = () => (
+        <div className="flex justify-center items-center gap-2 mt-6">
+            <button
+                className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+            >
+                Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                    key={i + 1}
+                    className={`px-3 py-1 rounded ${
+                        currentPage === i + 1
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-200 hover:bg-gray-300"
+                    }`}
+                    onClick={() => setCurrentPage(i + 1)}
+                >
+                    {i + 1}
+                </button>
+            ))}
+            <button
+                className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+                onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={currentPage === totalPages}
+            >
+                Next
+            </button>
+        </div>
+    );
+
     return (
         <Layout title="Kelola Berita">
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -555,6 +602,20 @@ const BeritaPage: React.FC = () => {
                                 </button>
                             )}
                         </div>
+                    </div>
+
+                    {/* Search Bar */}
+                    <div className="flex justify-end">
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => {
+                                setSearch(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                            placeholder="Cari judul, isi berita..."
+                            className="px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 w-full max-w-xs"
+                        />
                     </div>
 
                     {/* Enhanced Message display */}
@@ -602,7 +663,10 @@ const BeritaPage: React.FC = () => {
                     ) : (
                         <div className="space-y-8">
                             {beritaList.length > 0 ? (
-                                beritaList.map(renderBeritaCard)
+                                <>
+                                    {beritaList.map(renderBeritaCard)}
+                                    {renderPagination()}
+                                </>
                             ) : (
                                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-12 text-center">
                                     <div className="mx-auto w-24 h-24 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full flex items-center justify-center mb-6">

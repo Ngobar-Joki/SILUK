@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\PendaftarController;
+
 
 
 // Main entry point for the SPA
@@ -38,13 +38,39 @@ Route::middleware(['auth'])->prefix('api/accessibility')->group(function () {
     Route::delete('/delete', [App\Http\Controllers\AccessibilityController::class, 'deleteSettings']);
 });
 
+//profile user routes
+    Route::get('/profile-user', [App\Http\Controllers\ProfileUserController::class, 'index'])->name('profile-user');
+    Route::get('/profile-user/fetched', [App\Http\Controllers\ProfileUserController::class, 'fetchProfileUser'])->name('profile-user.fetched');
+    Route::put('/profile-user', [App\Http\Controllers\ProfileUserController::class, 'update'])->name('profile-user.update');
 
+//profile pendaftar routes
+Route::get('/profile-pendaftar', [App\Http\Controllers\ProfilePendaftarController::class, 'index'])->name('profile-pendaftar');
+Route::get('/profile-pendaftar/fetched', [App\Http\Controllers\ProfilePendaftarController::class, 'fetchProfilePendaftar'])->name('profile-pendaftar.fetched');
+Route::put('/profile-pendaftar', [App\Http\Controllers\ProfilePendaftarController::class, 'update'])->name('profile-pendaftar.update');
+
+// API untuk mengambil data user yang sedang login
+Route::middleware(['auth'])->get('/api/user', [AuthController::class, 'getUser'])->name('api.user');
+
+// Public API routes (accessible without authentication)
+Route::get('/api/struktur-organisasi/public', [App\Http\Controllers\StrukturOrganisasiController::class, 'fetchedStrukturOrganisasiPublic'])->name('api.struktur-organisasi.public');
+
+// Public API route for visi misi (accessible without authentication)
+Route::get('/api/visi-misi/public', [App\Http\Controllers\VisiMisiController::class, 'fetchedVisiMisi'])->name('api.visi-misi.public');
+
+// Public API route for berita (accessible without authentication)
+Route::get('/api/berita/public', [App\Http\Controllers\BeritaController::class, 'fetchedBeritaPublic'])->name('api.berita.public');
+
+// Tambahkan route API untuk notifikasi navbar
+Route::middleware(['auth'])->get('/api/notif-navbar', [App\Http\Controllers\NotifNavbarController::class, 'index'])->name('api.notif-navbar');
+Route::middleware(['auth'])->post('/api/notif-navbar/mark-all-read', [App\Http\Controllers\NotifNavbarController::class, 'markAllRead'])->name('api.notif-navbar.markAllRead');
 
 Route::middleware(['auth', 'role:operator'])->group(function () {
 
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/api/dashboard', [DashboardController::class, 'getDashboardData'])->name('api.dashboard');
 
+  
     // VisiMisi routes
     Route::get('/visi-misi', [App\Http\Controllers\VisiMisiController::class, 'index'])->name('visi-misi');
     Route::post('/visi-misi', [App\Http\Controllers\VisiMisiController::class, 'store'])->name('visi-misi.store');
@@ -66,10 +92,55 @@ Route::middleware(['auth', 'role:operator'])->group(function () {
     Route::delete('/berita/{id}', [App\Http\Controllers\BeritaController::class, 'destroy'])->name('berita.destroy');
     Route::get('/berita/fetched', [App\Http\Controllers\BeritaController::class, 'fetchedBerita'])->name('berita.fetched');
 
+
+    // DaftarUser routes
+Route::get('/daftar-user', [App\Http\Controllers\DaftarUserController::class, 'index'])->name('daftar-user');
+Route::post('/daftar-user', [App\Http\Controllers\DaftarUserController::class, 'store'])->name('daftar-user.store');
+Route::put('/daftar-user/{id}', [App\Http\Controllers\DaftarUserController::class, 'update'])->name('daftar-user.update');
+Route::delete('/daftar-user/{id}', [App\Http\Controllers\DaftarUserController::class, 'destroy'])->name('daftar-user.destroy');
+Route::get('/daftar-user/fetched', [App\Http\Controllers\DaftarUserController::class, 'fetchedUsers'])->name('daftar-user.fetched');
+
+
+// DaftarPermohonan routes
+Route::get('/daftar-permohonan', [App\Http\Controllers\DaftarPermohonanController::class, 'index'])->name('daftar-permohonan');
+Route::get('/daftar-permohonan/fetched', [App\Http\Controllers\DaftarPermohonanController::class, 'fetchedDaftarPermohonan'])->name('daftar-permohonan.fetched');
+Route::post('/daftar-permohonan/verifikasi/{id}', [App\Http\Controllers\DaftarPermohonanController::class, 'verifikasi'])->name('daftar-permohonan.verifikasi');
+Route::post('/daftar-permohonan/tolak/{id}', [App\Http\Controllers\DaftarPermohonanController::class, 'tolak'])->name('daftar-permohonan.tolak');
+
+    // DaftarLaporan routes
+Route::get('/daftar-laporan', [App\Http\Controllers\DaftarLaporanController::class, 'index'])->name('daftar-laporan');
+Route::get('/daftar-laporan/fetched', [App\Http\Controllers\DaftarLaporanController::class, 'fetchedDaftarLaporan'])->name('daftar-laporan.fetched');
+Route::post('/daftar-laporan/verifikasi/{id}', [App\Http\Controllers\DaftarLaporanController::class, 'verifikasi'])->name('daftar-laporan.verifikasi');
+Route::post('/daftar-laporan/tolak/{id}', [App\Http\Controllers\DaftarLaporanController::class, 'tolak'])->name('daftar-laporan.tolak');
+
     Route::get('/api/accessibility/statistics', [App\Http\Controllers\AccessibilityController::class, 'getStatistics']);
 });
 
 Route::middleware(['auth', 'role:pendaftar'])->group(function () {
-    Route::get('/pendaftar', [PendaftarController::class, 'index'])->name('pendaftar');
- 
+    // Route::get('/pendaftar', [PendaftarController::class, 'index'])->name('pendaftar');
+    
+    // Permohonan routes
+
+    Route::get('/permohonan', [App\Http\Controllers\PermohonanController::class, 'index'])->name('permohonan');
+    Route::post('/permohonan', [App\Http\Controllers\PermohonanController::class, 'store'])->name('permohonan.store');
+     Route::get('/permohonan/fetched', [App\Http\Controllers\PermohonanController::class, 'fetchedPermohonan'])->name('permohonan.fetched');
+
+    Route::get('/permohonan/{permohonan}', [App\Http\Controllers\PermohonanController::class, 'show'])->name('permohonan.show');
+    Route::put('/permohonan/{permohonan}', [App\Http\Controllers\PermohonanController::class, 'update'])->name('permohonan.update');
+    Route::delete('/permohonan/{permohonan}', [App\Http\Controllers\PermohonanController::class, 'destroy'])->name('permohonan.destroy');
+    // Tambahkan endpoint untuk fetch data permohonan (AJAX)
+
+    // LaporanBulanan routes
+    Route::get('/laporan-bulanan', [App\Http\Controllers\LaporanBulananController::class, 'index'])->name('laporan-bulanan');
+    Route::post('/laporan-bulanan', [App\Http\Controllers\LaporanBulananController::class, 'store'])->name('laporan-bulanan.store');
+    Route::get('/laporan-bulanan/fetched', [App\Http\Controllers\LaporanBulananController::class, 'fetchedLaporanBulanan'])->name('laporan-bulanan.fetched');
+    Route::get('/laporan-bulanan/{id}', [App\Http\Controllers\LaporanBulananController::class, 'show'])->name('laporan-bulanan.show');
+    Route::put('/laporan-bulanan/{laporanBulanan}', [App\Http\Controllers\LaporanBulananController::class, 'update'])->name('laporan-bulanan.update');
+    Route::delete('/laporan-bulanan/{laporanBulanan}', [App\Http\Controllers\LaporanBulananController::class, 'destroy'])->name('laporan-bulanan.destroy');
+
+   });
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    // Manual trigger for monthly reminder (for testing)
+    Route::post('/admin/send-monthly-reminder', [App\Http\Controllers\DaftarLaporanController::class, 'sendMonthlyReminder']);
 });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Layout from "../components/layout/Layout";
+import Layout from "../../components/layout/Layout";
 import { Edit, Save, X, Eye, Sparkles, Target, Lightbulb } from "lucide-react";
 import axios from "axios";
 
@@ -10,9 +10,7 @@ interface VisiMisi {
 }
 
 const VisiMisiPage: React.FC<{ visiMisi?: VisiMisi[] }> = (props) => {
-    const [visiMisiList, setVisiMisiList] = useState<VisiMisi[]>(
-        props.visiMisi || []
-    );
+    const [visiMisiList, setVisiMisiList] = useState<VisiMisi[]>(props.visiMisi || []);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ text: "", type: "" });
@@ -53,16 +51,17 @@ const VisiMisiPage: React.FC<{ visiMisi?: VisiMisi[] }> = (props) => {
 
     const handleEdit = (id: number) => {
         setIsAnimating(true);
+        setEditingId(id);
         setTimeout(() => {
-            setEditingId(id);
             setIsAnimating(false);
         }, 150);
     };
 
     const handleCancel = () => {
+        console.log("Tombol batal diklik");
         setIsAnimating(true);
+        setEditingId(null);
         setTimeout(() => {
-            setEditingId(null);
             setIsAnimating(false);
         }, 150);
     };
@@ -80,8 +79,6 @@ const VisiMisiPage: React.FC<{ visiMisi?: VisiMisi[] }> = (props) => {
                 setMessage({ text: response.data.message, type: "success" });
                 setEditingId(null);
                 fetchVisiMisi();
-
-                // Auto-hide success message
                 setTimeout(() => {
                     setMessage({ text: "", type: "" });
                 }, 3000);
@@ -89,9 +86,7 @@ const VisiMisiPage: React.FC<{ visiMisi?: VisiMisi[] }> = (props) => {
         } catch (error: any) {
             console.error("Error saving visi misi:", error);
             setMessage({
-                text:
-                    error.response?.data?.message ||
-                    "Terjadi kesalahan saat menyimpan data",
+                text: error.response?.data?.message || "Terjadi kesalahan saat menyimpan data",
                 type: "error",
             });
         } finally {
@@ -107,19 +102,15 @@ const VisiMisiPage: React.FC<{ visiMisi?: VisiMisi[] }> = (props) => {
             <div
                 key={item.id}
                 className={`group relative overflow-hidden transition-all duration-500 transform ${
-                    isAnimating
-                        ? "scale-95 opacity-50"
-                        : "scale-100 opacity-100"
+                    isAnimating ? "scale-95 opacity-50" : "scale-100 opacity-100"
                 } ${
                     isEditing
                         ? "bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-xl"
                         : "bg-white/80 backdrop-blur-sm border border-gray-200/50 hover:border-gray-300/70 hover:shadow-lg"
                 } rounded-2xl p-8 mb-8 hover:scale-[1.02] transition-all duration-300`}
             >
-                {/* Decorative gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                {/* Header with icon */}
                 <div className="flex justify-between items-center mb-6">
                     <div className="flex items-center gap-3">
                         <div
@@ -140,9 +131,7 @@ const VisiMisiPage: React.FC<{ visiMisi?: VisiMisi[] }> = (props) => {
                                 {isVisi ? "VISI" : "MISI"}
                             </h3>
                             <p className="text-sm text-gray-500 mt-1">
-                                {isVisi
-                                    ? "Pandangan masa depan"
-                                    : "Langkah strategis"}
+                                {isVisi ? "Pandangan masa depan" : "Langkah strategis"}
                             </p>
                         </div>
                     </div>
@@ -159,11 +148,7 @@ const VisiMisiPage: React.FC<{ visiMisi?: VisiMisi[] }> = (props) => {
                 </div>
 
                 {isEditing ? (
-                    <form
-                        onSubmit={(e) => handleSubmit(e, item.id)}
-                        className="space-y-6"
-                    >
-                        {/* Floating label input */}
+                    <form onSubmit={(e) => handleSubmit(e, item.id)} className="space-y-6">
                         <div className="relative">
                             <input
                                 type="text"
@@ -183,7 +168,6 @@ const VisiMisiPage: React.FC<{ visiMisi?: VisiMisi[] }> = (props) => {
                             </label>
                         </div>
 
-                        {/* Floating label textarea */}
                         <div className="relative">
                             <textarea
                                 id={`deskripsi-${item.id}`}
@@ -203,12 +187,11 @@ const VisiMisiPage: React.FC<{ visiMisi?: VisiMisi[] }> = (props) => {
                             </label>
                         </div>
 
-                        {/* Action buttons */}
                         <div className="flex gap-3 justify-end pt-6">
                             <button
                                 type="button"
                                 onClick={handleCancel}
-                                className="group/cancel flex items-center gap-2 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium"
+                                className="relative z-10 group/cancel flex items-center gap-2 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium"
                             >
                                 <X className="w-4 h-4 group-hover/cancel:rotate-90 transition-transform" />
                                 Batal
@@ -241,9 +224,7 @@ const VisiMisiPage: React.FC<{ visiMisi?: VisiMisi[] }> = (props) => {
                             <div className="prose prose-lg max-w-none text-gray-700 leading-relaxed">
                                 <div
                                     className="[&>p]:mb-4 [&>ul]:mb-4 [&>ol]:mb-4 [&>li]:mb-2"
-                                    dangerouslySetInnerHTML={{
-                                        __html: item.deskripsi,
-                                    }}
+                                    dangerouslySetInnerHTML={{ __html: item.deskripsi }}
                                 />
                             </div>
                         </div>
@@ -257,7 +238,6 @@ const VisiMisiPage: React.FC<{ visiMisi?: VisiMisi[] }> = (props) => {
         <Layout title="Visi & Misi">
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
                 <div className="space-y-8">
-                    {/* Modern Header */}
                     <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 rounded-2xl p-8 text-white">
                         <div className="absolute inset-0 bg-black/10" />
                         <div className="relative flex items-center justify-between">
@@ -270,8 +250,7 @@ const VisiMisiPage: React.FC<{ visiMisi?: VisiMisi[] }> = (props) => {
                                         Visi & Misi Lembaga
                                     </h1>
                                     <p className="text-blue-100 text-lg">
-                                        Kelola visi dan misi organisasi dengan
-                                        mudah
+                                        Kelola visi dan misi organisasi dengan mudah
                                     </p>
                                 </div>
                             </div>
@@ -281,7 +260,6 @@ const VisiMisiPage: React.FC<{ visiMisi?: VisiMisi[] }> = (props) => {
                         </div>
                     </div>
 
-                    {/* Enhanced Message display */}
                     {message.text && (
                         <div
                             className={`relative overflow-hidden rounded-2xl p-6 shadow-lg transform transition-all duration-300 ${
@@ -299,14 +277,11 @@ const VisiMisiPage: React.FC<{ visiMisi?: VisiMisi[] }> = (props) => {
                                         <X className="w-5 h-5" />
                                     )}
                                 </div>
-                                <span className="font-medium text-lg">
-                                    {message.text}
-                                </span>
+                                <span className="font-medium text-lg">{message.text}</span>
                             </div>
                         </div>
                     )}
 
-                    {/* Enhanced Loading state */}
                     {loading && editingId === null ? (
                         <div className="flex flex-col items-center justify-center py-20">
                             <div className="relative">
@@ -316,9 +291,7 @@ const VisiMisiPage: React.FC<{ visiMisi?: VisiMisi[] }> = (props) => {
                             <p className="mt-6 text-xl text-gray-600 font-medium">
                                 Memuat data...
                             </p>
-                            <p className="mt-2 text-gray-500">
-                                Mohon tunggu sebentar
-                            </p>
+                            <p className="mt-2 text-gray-500">Mohon tunggu sebentar</p>
                         </div>
                     ) : (
                         <div className="space-y-8">
@@ -333,8 +306,7 @@ const VisiMisiPage: React.FC<{ visiMisi?: VisiMisi[] }> = (props) => {
                                         Belum ada data
                                     </h3>
                                     <p className="text-gray-600 text-lg">
-                                        Visi & misi belum tersedia. Silakan
-                                        tambahkan data terlebih dahulu.
+                                        Visi & misi belum tersedia. Silakan tambahkan data terlebih dahulu.
                                     </p>
                                 </div>
                             )}

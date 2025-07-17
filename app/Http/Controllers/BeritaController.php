@@ -43,13 +43,26 @@ class BeritaController extends Controller
     public function index()
     {
         $beritas = Berita::all();
-        return Inertia::render('Berita', compact('beritas'));
+        return Inertia::render('operator/Berita', compact('beritas'));
     }
 
-    public function fetchedBerita()
+    public function fetchedBerita(Request $request)
     {
         try {
-            $beritas = Berita::all();
+            $search = $request->input('search', '');
+            $pageSize = (int) $request->input('pageSize', 5);
+
+            $query = Berita::query();
+
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('Judul_berita', 'like', "%$search%")
+                        ->orWhere('isi_berita', 'like', "%$search%");
+                });
+            }
+
+            $beritas = $query->orderBy('tanggal', 'desc')->paginate($pageSize);
+
             return response()->json(['success' => true, 'beritas' => $beritas]);
         } catch (\Exception $e) {
             Log::error('Error fetching berita', [
@@ -59,6 +72,53 @@ class BeritaController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan saat mengambil data.'
+            ], 500);
+        }
+    }
+
+    public function fetchedBeritaPublic(Request $request)
+    {
+        try {
+            $page = (int) $request->input('page', 1);
+            $pageSize = (int) $request->input('pageSize', 10);
+
+            $query = Berita::query();
+
+            // Order by date descending (newest first)
+            $beritas = $query->orderBy('tanggal', 'desc')->paginate($pageSize);
+
+            // Transform the data to match frontend expectations
+            $transformedData = $beritas->map(function ($berita) {
+                return [
+                    'id' => $berita->id,
+                    'title' => $berita->Judul_berita,
+                    'content' => $berita->isi_berita,
+                    'date' => $berita->tanggal,
+                    'created_at' => $berita->created_at,
+                    'updated_at' => $berita->updated_at,
+                    'image' => $berita->foto ? asset('storage/' . $berita->foto) : null,
+                    'category' => 'Berita', // Default category
+                    'headline' => false, // You might want to add this field to database later
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $transformedData,
+                'current_page' => $beritas->currentPage(),
+                'last_page' => $beritas->lastPage(),
+                'total' => $beritas->total(),
+                'per_page' => $beritas->perPage(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching public berita', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mengambil data berita.'
             ], 500);
         }
     }

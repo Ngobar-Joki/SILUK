@@ -1,15 +1,6 @@
-import React, { useState } from "react";
-import { Bell, User, Settings, ChevronDown } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Bell, User, ChevronDown } from "lucide-react";
 import "../../../css/Header.css";
-
-// Add type declaration for window.user
-interface User {
-    id: number;
-    name: string;
-    username: string;
-    role: string;
-    // Add other user properties as needed
-}
 
 interface HeaderProps {
     onMenuClick: () => void;
@@ -25,9 +16,72 @@ const Header: React.FC<HeaderProps> = ({
     const [profileOpen, setProfileOpen] = useState(false);
     const [notificationOpen, setNotificationOpen] = useState(false);
 
-    // Get user data - assuming it's available globally or you need to fetch it
-    // You may need to adjust this based on how user data is provided in your app
-    const userData: User | null = (window as any).user || null;
+    const [user, setUser] = useState<{
+        name: string;
+        email: string;
+        role: string;
+    } | null>(null);
+
+    const [notifications, setNotifications] = useState<
+        { type: string; title: string; created_at: string; read?: boolean }[]
+    >([]);
+    const [notifLoading, setNotifLoading] = useState(false);
+
+    useEffect(() => {
+        fetch("/api/user", {
+            credentials: "same-origin",
+            headers: {
+                Accept: "application/json",
+            },
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.success && data.user) {
+                    setUser({
+                        name: data.user.name,
+                        email: data.user.email,
+                        role: data.user.role,
+                    });
+                }
+            })
+            .catch(() => setUser(null));
+    }, []);
+
+    useEffect(() => {
+        setNotifLoading(true);
+        fetch("/api/notif-navbar", {
+            credentials: "same-origin",
+            headers: {
+                Accept: "application/json",
+            },
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.success && data.notifications) {
+                    setNotifications(data.notifications);
+                    // Check if all notifications are read
+                    // const allRead = data.notifications.every(
+                    //     (n: any) => n.read
+                    // );
+                    // setNotifRead(allRead);
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching notifications:", error);
+            })
+            .finally(() => setNotifLoading(false));
+    }, []);
+
+    // Helper to format time ago
+    function timeAgo(dateString: string) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
+        if (diff < 60) return `${diff} detik yang lalu`;
+        if (diff < 3600) return `${Math.floor(diff / 60)} menit yang lalu`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)} jam yang lalu`;
+        return `${Math.floor(diff / 86400)} hari yang lalu`;
+    }
 
     return (
         <header
@@ -63,7 +117,38 @@ const Header: React.FC<HeaderProps> = ({
                             aria-label="Notifications"
                         >
                             <Bell className="icon" />
-                            <span className="notification-badge"></span>
+                            {/* Badge tampil hanya jika ada notif belum dibaca */}
+                            {notifications.length > 0 &&
+                                notifications.some((n) => !n.read) && (
+                                    <span
+                                        className="notification-badge"
+                                        style={{
+                                            position: "absolute",
+                                            top: "-6px",
+                                            right: "-6px",
+                                            minWidth: "22px",
+                                            height: "22px",
+                                            background: "#e53935",
+                                            color: "#fff",
+                                            borderRadius: "50%",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            fontSize: "13px",
+                                            fontWeight: 700,
+                                            boxShadow: "0 0 0 2px #fff",
+                                            zIndex: 2,
+                                            padding: "0 6px",
+                                            border: "2px solid #fff",
+                                            transition: "opacity 0.2s",
+                                        }}
+                                    >
+                                        {
+                                            notifications.filter((n) => !n.read)
+                                                .length
+                                        }
+                                    </span>
+                                )}
                         </button>
 
                         {/* Notification dropdown */}
@@ -71,38 +156,78 @@ const Header: React.FC<HeaderProps> = ({
                             <div className="dropdown notification-dropdown">
                                 <div className="dropdown-header">
                                     <h3 className="dropdown-title">
-                                        Notifikasi
+                                        Notifikasi Pengajuan Masuk
                                     </h3>
                                 </div>
                                 <div className="dropdown-content">
-                                    <button className="notification-item">
-                                        <p className="notification-title">
-                                            Pesan baru
-                                        </p>
-                                        <p className="notification-time">
-                                            2 menit yang lalu
-                                        </p>
-                                    </button>
-                                    <button className="notification-item">
-                                        <p className="notification-title">
-                                            Update sistem
-                                        </p>
-                                        <p className="notification-time">
-                                            1 jam yang lalu
-                                        </p>
-                                    </button>
-                                    <button className="notification-item">
-                                        <p className="notification-title">
-                                            Backup selesai
-                                        </p>
-                                        <p className="notification-time">
-                                            3 jam yang lalu
-                                        </p>
-                                    </button>
+                                    {notifLoading ? (
+                                        <div className="notification-item">
+                                            Memuat notifikasi...
+                                        </div>
+                                    ) : notifications.length === 0 ? (
+                                        <div className="notification-item">
+                                            Tidak ada notifikasi baru
+                                        </div>
+                                    ) : (
+                                        notifications.map((notif, idx) => (
+                                            <div
+                                                className="notification-item"
+                                                key={idx}
+                                            >
+                                                <p className="notification-title">
+                                                    [{notif.type}] {notif.title}
+                                                </p>
+                                                <p className="notification-time">
+                                                    {timeAgo(notif.created_at)}
+                                                </p>
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
                                 <div className="dropdown-footer">
-                                    <button className="dropdown-footer-button">
-                                        Lihat semua notifikasi
+                                    <button
+                                        className="dropdown-footer-button"
+                                        onClick={async () => {
+                                            setNotifLoading(true);
+                                            try {
+                                                await fetch(
+                                                    "/api/notif-navbar/mark-all-read",
+                                                    {
+                                                        method: "POST",
+                                                        credentials:
+                                                            "same-origin",
+                                                        headers: {
+                                                            "Content-Type":
+                                                                "application/json",
+                                                            Accept: "application/json",
+                                                        },
+                                                    }
+                                                );
+
+                                                // Update local state immediately to remove badge
+                                                const updatedNotifications =
+                                                    notifications.map(
+                                                        (notif) => ({
+                                                            ...notif,
+                                                            read: true,
+                                                        })
+                                                    );
+                                                setNotifications(
+                                                    updatedNotifications
+                                                );
+                                                // setNotifRead(true);
+                                                setNotificationOpen(false);
+                                            } catch (error) {
+                                                console.error(
+                                                    "Error marking notifications as read:",
+                                                    error
+                                                );
+                                            } finally {
+                                                setNotifLoading(false);
+                                            }
+                                        }}
+                                    >
+                                        Tandai semua sudah dibaca
                                     </button>
                                 </div>
                             </div>
@@ -127,24 +252,25 @@ const Header: React.FC<HeaderProps> = ({
                             <div className="dropdown profile-dropdown">
                                 <div className="dropdown-header">
                                     <p className="dropdown-title">
-                                        {userData?.name || "User"}
+                                        {user ? user.name : "User"}
                                     </p>
                                     <p className="dropdown-subtitle">
-                                        {userData?.username ||
-                                            "admin@siluk.com"}
+                                        {user ? user.email : "admin@siluk.com"}
                                     </p>
                                     <p className="dropdown-subtitle">
-                                        Role: {userData?.role || "User"}
+                                        Role: {user ? user.role : "User"}
                                     </p>
                                 </div>
-                                <button className="dropdown-item">
+                                <button
+                                    className="dropdown-item"
+                                    onClick={() => {
+                                        window.location.href = "/profile-user";
+                                    }}
+                                >
                                     <User className="dropdown-item-icon" />
                                     Profil
                                 </button>
-                                <button className="dropdown-item">
-                                    <Settings className="dropdown-item-icon" />
-                                    Pengaturan
-                                </button>
+
                                 <hr className="dropdown-divider" />
                                 <button
                                     className="dropdown-item logout-button"
