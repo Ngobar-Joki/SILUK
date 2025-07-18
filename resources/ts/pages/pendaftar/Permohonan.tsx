@@ -61,14 +61,39 @@ const Permohonan: React.FC = () => {
     };
 
     // Fetch permohonan list
+    // useEffect(() => {
+    //     fetchPermohonans();
+    // }, []);
+
+    // Fetch user_id for form (assume from /profile-pendaftar/fetched)
     useEffect(() => {
-        fetchPermohonans();
+        const fetchUserProfile = async () => {
+            try {
+                const res = await axios.get("/profile-pendaftar/fetched");
+                if (res.data?.user?.id) {
+                    setFormData((prev) => ({
+                        ...prev,
+                        user_id: res.data.user.id,
+                    }));
+                    // Setelah user_id tersedia, fetch permohonan
+                    await fetchPermohonansForUser(res.data.user.id);
+                }
+            } catch (error) {
+                console.error("Error fetching user profile:", error);
+                showToast("error", "Gagal mengambil data profil user");
+            }
+        };
+
+        fetchUserProfile();
     }, []);
 
-    const fetchPermohonans = async () => {
+    // Fungsi terpisah untuk fetch permohonan berdasarkan user_id
+    const fetchPermohonansForUser = async (userId: number) => {
         setLoading(true);
         try {
-            const res = await axios.get("/permohonan/fetched");
+            const res = await axios.get(
+                `/permohonan/fetched?user_id=${userId}`
+            );
             if (res.data && Array.isArray(res.data.permohonans)) {
                 setPermohonans(res.data.permohonans);
 
@@ -112,15 +137,6 @@ const Permohonan: React.FC = () => {
             setLoading(false);
         }
     };
-
-    // Fetch user_id for form (assume from /profile-pendaftar/fetched)
-    useEffect(() => {
-        axios.get("/profile-pendaftar/fetched").then((res) => {
-            if (res.data?.user?.id) {
-                setFormData((prev) => ({ ...prev, user_id: res.data.user.id }));
-            }
-        });
-    }, []);
 
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -186,7 +202,8 @@ const Permohonan: React.FC = () => {
                         : "Permohonan berhasil ditambahkan"
                 );
                 handleReset(); // reset form & file input
-                fetchPermohonans(); // refresh table
+                // Refresh data permohonan dengan user_id yang sudah ada
+                await fetchPermohonansForUser(formData.user_id);
                 setTimeout(() => {
                     window.location.reload();
                 }, 1000); // beri jeda agar alert sempat tampil

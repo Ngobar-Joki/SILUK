@@ -47,10 +47,17 @@ class PermohonanController extends Controller
         return ['status' => true, 'data' => $validator->validated()];
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $permohonans = Permohonan::with('user')->get();
+            // Jika ada user_id dalam request, filter berdasarkan user_id
+            $query = Permohonan::with('user');
+            
+            if ($request->has('user_id')) {
+                $query->where('user_id', $request->get('user_id'));
+            }
+            
+            $permohonans = $query->get();
             return Inertia::render('pendaftar/Permohonan', ['permohonans' => $permohonans]);
         } catch (\Exception $e) {
             Log::error('Error in index method', ['error' => $e->getMessage()]);
@@ -203,11 +210,26 @@ class PermohonanController extends Controller
         }
     }
 
-    public function fetchedPermohonan()
+    public function fetchedPermohonan(Request $request)
     {
         try {
-            // Pastikan tidak ada penggunaan findOrFail/firstOrFail di sini
-            $permohonans = Permohonan::with('user')->orderBy('created_at', 'desc')->get();
+            // Ambil user_id dari request atau dari authenticated user
+            $userId = $request->get('user_id');
+            
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'permohonans' => [],
+                    'message' => 'User ID tidak ditemukan'
+                ], 400);
+            }
+            
+            // Filter permohonan berdasarkan user_id
+            $permohonans = Permohonan::with('user')
+                ->where('user_id', $userId)
+                ->orderBy('created_at', 'desc')
+                ->get();
+                
             return response()->json([
                 'success' => true,
                 'permohonans' => $permohonans

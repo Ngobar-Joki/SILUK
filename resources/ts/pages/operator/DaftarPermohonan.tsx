@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import Layout from "../../components/layout/Layout";
-import { Users, CheckCircle, XCircle, Clock } from "lucide-react";
+import {
+    Users,
+    CheckCircle,
+    XCircle,
+    Clock,
+    FileText,
+    Download,
+    Eye,
+} from "lucide-react";
 import axios from "axios";
 
 interface Permohonan {
@@ -35,14 +43,15 @@ const DaftarPermohonan: React.FC = () => {
     >("pending");
     // State untuk modal verifikasi
     const [showModal, setShowModal] = useState<boolean>(false);
-    // const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
-    // Tambahkan state untuk daftar dokumen yang akan diverifikasi
-    const [pdfList, setPdfList] = useState<{ label: string; url: string }[]>(
-        []
-    );
-    const [activePdf, setActivePdf] = useState<string | null>(null);
+    // (pdfList state removed because it was unused)
+    // const [activePdf, setActivePdf] = useState<string | null>(null);
     const [showCatatanModal, setShowCatatanModal] = useState(false);
     const [catatan, setCatatan] = useState("");
+    // State untuk file viewer modal
+    const [showFileModal, setShowFileModal] = useState<boolean>(false);
+    const [selectedFile, setSelectedFile] = useState<string | null>(null);
+    const [fileType, setFileType] = useState<string>("");
+    const [fileLoading, setFileLoading] = useState<boolean>(false);
     // Simpan permohonan yang sedang diverifikasi untuk aksi
     const [selectedPermohonan, setSelectedPermohonan] =
         useState<Permohonan | null>(null);
@@ -150,34 +159,59 @@ const DaftarPermohonan: React.FC = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    // Fungsi untuk membuka modal verifikasi dan menampilkan semua dokumen
-    const handleVerifikasi = (permohonan: Permohonan) => {
-        const files: { label: string; url: string }[] = [];
-        if (permohonan.susunan_penggurus)
-            files.push({
-                label: "Susunan Pengurus",
-                url: `/storage/${permohonan.susunan_penggurus}`,
-            });
-        if (permohonan.surat_nonpengurus)
-            files.push({
-                label: "Surat Non Pengurus",
-                url: `/storage/${permohonan.surat_nonpengurus}`,
-            });
-        if (permohonan.surat_kuasa)
-            files.push({
-                label: "Surat Kuasa",
-                url: `/storage/${permohonan.surat_kuasa}`,
-            });
-        if (permohonan.bukti_modal)
-            files.push({
-                label: "Bukti Modal",
-                url: `/storage/${permohonan.bukti_modal}`,
-            });
-        if (permohonan.ktp)
-            files.push({ label: "KTP", url: `/storage/${permohonan.ktp}` });
+    // Function to get file extension
+    const getFileExtension = (filename: string): string => {
+        return filename.split(".").pop()?.toLowerCase() || "";
+    };
 
-        setPdfList(files);
-        setActivePdf(files.length > 0 ? files[0].url : null);
+    // Function to determine file type
+    const getFileType = (filename: string): string => {
+        const ext = getFileExtension(filename);
+        if (["pdf"].includes(ext)) return "pdf";
+        if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return "image";
+        if (["doc", "docx"].includes(ext)) return "document";
+        if (["xls", "xlsx"].includes(ext)) return "spreadsheet";
+        return "other";
+    };
+
+    // Function to handle file viewing
+    const handleViewFile = async (filename: string) => {
+        if (!filename) {
+            setNotification({
+                type: "error",
+                message: "File tidak tersedia",
+            });
+            return;
+        }
+
+        try {
+            setFileLoading(true);
+            const filePath = `/storage/${filename}`;
+
+            setSelectedFile(filePath);
+            setFileType(getFileType(filename));
+            setShowFileModal(true);
+        } catch (error) {
+            setNotification({
+                type: "error",
+                message: "Gagal memuat file",
+            });
+        } finally {
+            setFileLoading(false);
+        }
+    };
+
+    // (handleDownloadFile removed because it was unused)
+
+    // Function to close file modal
+    const handleCloseFileModal = () => {
+        setShowFileModal(false);
+        setSelectedFile(null);
+        setFileType("");
+    };
+
+    // Fungsi untuk membuka modal verifikasi
+    const handleVerifikasi = (permohonan: Permohonan) => {
         setShowModal(true);
         setSelectedPermohonan(permohonan);
     };
@@ -388,10 +422,10 @@ const DaftarPermohonan: React.FC = () => {
                 </div>
             )}
 
-            {/* Modal Verifikasi PDF */}
+            {/* Modal Verifikasi */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                    <div className="bg-white rounded-2xl shadow-lg max-w-2xl w-full p-6 relative max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white rounded-2xl shadow-lg max-w-md w-full p-6 relative">
                         <button
                             className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 z-10"
                             onClick={handleCloseModal}
@@ -399,46 +433,50 @@ const DaftarPermohonan: React.FC = () => {
                             &times;
                         </button>
                         <h2 className="text-xl font-bold mb-4">
-                            Review Dokumen Permohonan (PDF)
+                            Verifikasi Permohonan
                         </h2>
-                        {pdfList.length === 0 ? (
-                            <div className="text-gray-500">
-                                Tidak ada dokumen yang tersedia.
-                            </div>
-                        ) : (
-                            <div>
-                                <div className="flex gap-2 mb-4 flex-wrap">
-                                    {pdfList.map((pdf) => (
-                                        <button
-                                            key={pdf.label}
-                                            className={`px-3 py-1 rounded ${
-                                                activePdf === pdf.url
-                                                    ? "bg-blue-600 text-white"
-                                                    : "bg-gray-200 text-gray-700"
-                                            }`}
-                                            onClick={() =>
-                                                setActivePdf(pdf.url)
-                                            }
-                                        >
-                                            {pdf.label}
-                                        </button>
-                                    ))}
+
+                        {selectedPermohonan && (
+                            <div className="mb-6">
+                                <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                                    <h3 className="font-semibold text-gray-800 mb-2">
+                                        Detail Permohonan
+                                    </h3>
+                                    <div className="space-y-2 text-sm">
+                                        <p>
+                                            <strong>Nama:</strong>{" "}
+                                            {selectedPermohonan.user?.name}
+                                        </p>
+                                        <p>
+                                            <strong>Email:</strong>{" "}
+                                            {selectedPermohonan.user?.email}
+                                        </p>
+                                        <p>
+                                            <strong>Username:</strong>{" "}
+                                            {selectedPermohonan.user?.username}
+                                        </p>
+                                        <p>
+                                            <strong>No. HP:</strong>{" "}
+                                            {selectedPermohonan.user?.no_hp}
+                                        </p>
+                                        <p>
+                                            <strong>Alamat:</strong>{" "}
+                                            {selectedPermohonan.user?.alamat}
+                                        </p>
+                                        <p>
+                                            <strong>Tanggal:</strong>{" "}
+                                            {formatDate(
+                                                selectedPermohonan.created_at
+                                            )}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="w-full h-[400px] border rounded-lg overflow-hidden mb-4">
-                                    {activePdf && (
-                                        <iframe
-                                            src={activePdf}
-                                            title="Preview PDF"
-                                            className="w-full h-full"
-                                            frameBorder={0}
-                                        />
-                                    )}
-                                </div>
+
                                 {/* Tombol Disetujui dan Ditolak - hanya muncul untuk status pending */}
                                 {(!selectedPermohonan?.status ||
                                     selectedPermohonan?.status ===
                                         "pending") && (
-                                    <div className="flex gap-4 justify-end mt-4">
+                                    <div className="flex gap-4 justify-end">
                                         <button
                                             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                             onClick={handleSetujui}
@@ -497,6 +535,7 @@ const DaftarPermohonan: React.FC = () => {
                     </div>
                 </div>
             )}
+
             {/* Modal Catatan Penolakan */}
             {showCatatanModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -538,6 +577,132 @@ const DaftarPermohonan: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            {/* File Viewer Modal */}
+            {showFileModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+                    <div className="bg-white rounded-2xl shadow-lg max-w-4xl w-full max-h-[90vh] m-4 flex flex-col">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                            <h2 className="text-xl font-bold text-gray-800">
+                                Lihat File Dokumen
+                            </h2>
+                            <div className="flex items-center gap-2">
+                                {selectedFile && (
+                                    <button
+                                        onClick={() => {
+                                            const link =
+                                                document.createElement("a");
+                                            link.href = selectedFile;
+                                            link.download =
+                                                selectedFile.split("/").pop() ||
+                                                "dokumen";
+                                            link.target = "_blank";
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
+                                        }}
+                                        className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                                        title="Download File"
+                                    >
+                                        <Download className="w-5 h-5" />
+                                    </button>
+                                )}
+                                <button
+                                    onClick={handleCloseFileModal}
+                                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                                >
+                                    <XCircle className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div className="flex-1 p-4 overflow-auto">
+                            {fileLoading ? (
+                                <div className="flex items-center justify-center h-64">
+                                    <div className="text-center">
+                                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                                        <p className="mt-4 text-gray-600">
+                                            Memuat file...
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : selectedFile ? (
+                                <div className="h-full">
+                                    {fileType === "pdf" && (
+                                        <iframe
+                                            src={selectedFile}
+                                            className="w-full h-96 md:h-[500px] border border-gray-300 rounded-lg"
+                                            title="PDF Viewer"
+                                        />
+                                    )}
+
+                                    {fileType === "image" && (
+                                        <div className="flex justify-center">
+                                            <img
+                                                src={selectedFile}
+                                                alt="Dokumen"
+                                                className="max-w-full max-h-[500px] object-contain rounded-lg shadow-md"
+                                            />
+                                        </div>
+                                    )}
+
+                                    {(fileType === "document" ||
+                                        fileType === "spreadsheet" ||
+                                        fileType === "other") && (
+                                        <div className="text-center py-12">
+                                            <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                                <FileText className="w-8 h-8 text-gray-600" />
+                                            </div>
+                                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                                File tidak dapat ditampilkan
+                                            </h3>
+                                            <p className="text-gray-600 mb-4">
+                                                File ini tidak dapat ditampilkan
+                                                di browser. Silakan download
+                                                untuk melihat isinya.
+                                            </p>
+                                            <button
+                                                onClick={() => {
+                                                    const link =
+                                                        document.createElement(
+                                                            "a"
+                                                        );
+                                                    link.href = selectedFile;
+                                                    link.download =
+                                                        selectedFile
+                                                            .split("/")
+                                                            .pop() || "dokumen";
+                                                    link.target = "_blank";
+                                                    document.body.appendChild(
+                                                        link
+                                                    );
+                                                    link.click();
+                                                    document.body.removeChild(
+                                                        link
+                                                    );
+                                                }}
+                                                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                            >
+                                                <Download className="w-4 h-4" />
+                                                Download File
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <p className="text-gray-600">
+                                        File tidak dapat dimuat
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
                 <div className="space-y-8">
                     {/* Header */}
@@ -766,6 +931,120 @@ const DaftarPermohonan: React.FC = () => {
                                                                 }
                                                             </div>
                                                         </div>
+
+                                                        {/* Document Files Information */}
+                                                        {(permohonan.susunan_penggurus ||
+                                                            permohonan.surat_nonpengurus ||
+                                                            permohonan.surat_kuasa ||
+                                                            permohonan.bukti_modal ||
+                                                            permohonan.ktp) && (
+                                                            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                                                <div className="flex items-center gap-2 mb-2">
+                                                                    <FileText className="w-4 h-4 text-blue-600" />
+                                                                    <span className="text-blue-700 text-sm font-medium">
+                                                                        Dokumen
+                                                                        Tersedia
+                                                                    </span>
+                                                                </div>
+                                                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                                                    {permohonan.susunan_penggurus && (
+                                                                        <div className="flex items-center gap-1">
+                                                                            <button
+                                                                                onClick={() =>
+                                                                                    handleViewFile(
+                                                                                        permohonan.susunan_penggurus!
+                                                                                    )
+                                                                                }
+                                                                                className="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                                                                                disabled={
+                                                                                    fileLoading
+                                                                                }
+                                                                            >
+                                                                                <Eye className="w-3 h-3" />
+                                                                                Susunan
+                                                                                Pengurus
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
+                                                                    {permohonan.surat_nonpengurus && (
+                                                                        <div className="flex items-center gap-1">
+                                                                            <button
+                                                                                onClick={() =>
+                                                                                    handleViewFile(
+                                                                                        permohonan.surat_nonpengurus!
+                                                                                    )
+                                                                                }
+                                                                                className="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                                                                                disabled={
+                                                                                    fileLoading
+                                                                                }
+                                                                            >
+                                                                                <Eye className="w-3 h-3" />
+                                                                                Surat
+                                                                                Non
+                                                                                Pengurus
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
+                                                                    {permohonan.surat_kuasa && (
+                                                                        <div className="flex items-center gap-1">
+                                                                            <button
+                                                                                onClick={() =>
+                                                                                    handleViewFile(
+                                                                                        permohonan.surat_kuasa!
+                                                                                    )
+                                                                                }
+                                                                                className="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                                                                                disabled={
+                                                                                    fileLoading
+                                                                                }
+                                                                            >
+                                                                                <Eye className="w-3 h-3" />
+                                                                                Surat
+                                                                                Kuasa
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
+                                                                    {permohonan.bukti_modal && (
+                                                                        <div className="flex items-center gap-1">
+                                                                            <button
+                                                                                onClick={() =>
+                                                                                    handleViewFile(
+                                                                                        permohonan.bukti_modal!
+                                                                                    )
+                                                                                }
+                                                                                className="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                                                                                disabled={
+                                                                                    fileLoading
+                                                                                }
+                                                                            >
+                                                                                <Eye className="w-3 h-3" />
+                                                                                Bukti
+                                                                                Modal
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
+                                                                    {permohonan.ktp && (
+                                                                        <div className="flex items-center gap-1">
+                                                                            <button
+                                                                                onClick={() =>
+                                                                                    handleViewFile(
+                                                                                        permohonan.ktp!
+                                                                                    )
+                                                                                }
+                                                                                className="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                                                                                disabled={
+                                                                                    fileLoading
+                                                                                }
+                                                                            >
+                                                                                <Eye className="w-3 h-3" />
+                                                                                KTP
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        )}
 
                                                         {/* Tambahkan informasi khusus berdasarkan status */}
                                                         {permohonan.status ===
