@@ -52,17 +52,40 @@ const LaporanBulanan: React.FC = () => {
         setTimeout(() => setAlert({ text: "", type: "" }), 3000);
     };
 
-    // Fetch laporan list
+    // Fetch user_id first, then fetch laporan list
     useEffect(() => {
-        fetchLaporans();
+        const fetchUserProfile = async () => {
+            try {
+                const res = await axios.get("/profile-pendaftar/fetched");
+                if (res.data?.user?.id) {
+                    setFormData((prev) => ({
+                        ...prev,
+                        user_id: res.data.user.id,
+                    }));
+                    // Fetch laporans after getting user_id
+                    fetchLaporans(res.data.user.id);
+                }
+            } catch (error) {
+                console.error("Error fetching user profile:", error);
+                showToast("error", "Gagal mengambil data profil pengguna");
+            }
+        };
+
+        fetchUserProfile();
     }, []);
 
-    const fetchLaporans = async () => {
+    const fetchLaporans = async (userId?: number) => {
         setLoading(true);
         try {
             const res = await axios.get("/laporan-bulanan/fetched");
             if (res.data && Array.isArray(res.data.laporans)) {
-                setLaporans(res.data.laporans);
+                // Filter laporans by current user ID
+                const currentUserId = userId || formData.user_id;
+                const filteredLaporans = res.data.laporans.filter(
+                    (laporan: LaporanBulanan) =>
+                        laporan.user_id === currentUserId
+                );
+                setLaporans(filteredLaporans);
             } else {
                 showToast(
                     "error",
@@ -80,15 +103,6 @@ const LaporanBulanan: React.FC = () => {
             setLoading(false);
         }
     };
-
-    // Fetch user_id for form (assume from /profile-pendaftar/fetched)
-    useEffect(() => {
-        axios.get("/profile-pendaftar/fetched").then((res) => {
-            if (res.data?.user?.id) {
-                setFormData((prev) => ({ ...prev, user_id: res.data.user.id }));
-            }
-        });
-    }, []);
 
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -158,7 +172,8 @@ const LaporanBulanan: React.FC = () => {
                         : "Laporan bulanan berhasil ditambahkan"
                 );
                 handleReset();
-                fetchLaporans();
+                // Pass current user_id when refetching
+                fetchLaporans(formData.user_id);
                 setTimeout(() => {}, 1000);
             } else {
                 // Selalu tampilkan pesan dari server jika ada
