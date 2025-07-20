@@ -536,7 +536,7 @@ const Welcome: React.FC = () => {
                                             handleNavClick(e, "pendaftaran")
                                         }
                                     >
-                                        Pendaftaran
+                                        Layanan
                                     </a>
                                 </li>
                                 {user && ( // Only show Pengajuan when logged in
@@ -665,7 +665,7 @@ const Welcome: React.FC = () => {
                                         handleNavClick(e, "pendaftaran")
                                     }
                                 >
-                                    Pendaftaran
+                                    Layanan
                                 </a>
                             </li>
                             {user && ( // Only show Pengajuan when logged in
@@ -1060,7 +1060,7 @@ const Welcome: React.FC = () => {
                             transform: `translateY(${parallaxOffset * 0.1}px)`,
                         }}
                     >
-                        <h2>Alur Layanan Koperasi</h2>
+                        <h2> Layanan Koperasi</h2>
                         <div className="section-line"></div>
                         <p>
                             Ikuti langkah-langkah berikut untuk menjadi anggota,
@@ -1272,14 +1272,15 @@ const Welcome: React.FC = () => {
                                     kirim laporan bulanan melalui dashboard.
                                 </p>
                                 <a
-                                    href="/profile-pendaftar"
+                                    href="/permohonan"
                                     className="primary-button"
                                     style={{
                                         marginTop: "1.5rem",
                                         display: "inline-block",
                                     }}
                                 >
-                                    Buka Dashboard Anggota
+                                    Ajukan Permohonan Koperasi
+                                    <span className="button-arrow">→</span>
                                 </a>
                             </div>
                         )}
@@ -1547,7 +1548,7 @@ const Welcome: React.FC = () => {
                                         <span className="footer-nav-icon">
                                             📝
                                         </span>
-                                        <span>Pendaftaran</span>
+                                        <span>Layanan</span>
                                     </a>
                                 </li>
                                 <li>
