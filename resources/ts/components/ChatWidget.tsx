@@ -39,6 +39,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
     const [darkMode, setDarkMode] = useState(() => {
         // Initialize dark mode from props or localStorage or system preference
         if (initialDarkMode !== undefined) return initialDarkMode;
+<<<<<<< HEAD
         
         const savedMode = localStorage.getItem('siluk_dark_mode');
         if (savedMode !== null) return savedMode === 'true';
@@ -47,6 +48,16 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                window.matchMedia('(prefers-color-scheme: dark)').matches;
     });
     
+=======
+
+        const savedMode = localStorage.getItem('siluk_dark_mode');
+        if (savedMode !== null) return savedMode === 'true';
+
+        return window.matchMedia &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches;
+    });
+
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -66,7 +77,11 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                 setDarkMode(e.matches);
             }
         };
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
         // Add listener (use different syntax based on browser support)
         if (mediaQuery.addEventListener) {
             mediaQuery.addEventListener('change', handleChange);
@@ -74,7 +89,11 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
             // For older browsers
             mediaQuery.addListener(handleChange);
         }
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
         // Cleanup
         return () => {
             if (mediaQuery.removeEventListener) {
@@ -85,7 +104,11 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
             }
         };
     }, []);
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
     // Save dark mode preference when it changes
     useEffect(() => {
         localStorage.setItem(STORAGE_KEYS.DARK_MODE, darkMode.toString());
@@ -111,14 +134,22 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
         inputBorder: darkMode ? '#4B5563' : '#D1D5DB',
         inputText: darkMode ? '#E5E7EB' : '#1F2937',
         chatAreaBg: darkMode ? '#111827' : '#F9FAFB',
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
         // Session list
         sessionHover: darkMode ? '#374151' : '#F9FAFB',
         sessionActive: darkMode ? '#3B82F6/20' : '#EFF6FF',
         sessionActiveBorder: darkMode ? '#3B82F6' : '#BFDBFE',
         sessionText: darkMode ? '#E5E7EB' : '#1F2937',
         sessionMeta: darkMode ? '#9CA3AF' : '#6B7280',
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
         // Quick replies
         quickReplyBg: darkMode ? '#374151' : '#F3F4F6',
         quickReplyHover: darkMode ? '#4B5563' : '#E5E7EB',
@@ -289,10 +320,27 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
         "📊 Lihat laporan keuangan",
         "🏢 Lokasi kantor cabang",
         "📞 Hubungi customer service",
+<<<<<<< HEAD
     ];
 
     // Bot responses
     const botResponses = [
+=======
+        "💳 Syarat & ketentuan keanggotaan",
+        "🏦 Jenis produk koperasi",
+        "📈 Suku bunga simpanan",
+        "💼 Pinjaman usaha mikro",
+        "🎯 Program SHU (Sisa Hasil Usaha)",
+        "📱 Layanan digital banking",
+        "⏰ Jam operasional",
+        "📋 Dokumen yang diperlukan",
+        "🔒 Keamanan transaksi",
+        "📞 Nomor call center"
+    ];
+
+    // Default bot responses for fallback
+    const defaultBotResponses = [
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
         "Terima kasih telah menghubungi SILUK! Tim customer service kami akan segera membantu Anda. 😊",
         "Untuk informasi simpanan dan pinjaman, silakan kunjungi halaman layanan kami atau hubungi cabang terdekat.",
         "Apakah Anda ingin mengetahui lebih lanjut tentang program keanggotaan SILUK?",
@@ -307,6 +355,88 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
         "SILUK memiliki berbagai produk simpanan dan pinjaman yang bisa disesuaikan dengan kebutuhan Anda.",
     ];
 
+<<<<<<< HEAD
+=======
+    // Format bot response to make it more readable
+    const formatBotResponse = (responseText: string): string => {
+        if (!responseText) return "Maaf, saya tidak dapat memproses pertanyaan Anda saat ini.";
+
+        // Handle responses that are already well formatted (like from our fallback)
+        if (responseText.includes('**') || responseText.includes('📞') || responseText.includes('🔧')) {
+            // Response is already formatted, just handle escaped newlines
+            return responseText.replace(/\\n/g, '\n').trim();
+        }
+
+        // Format API responses from external chatbot
+        let formatted = responseText.replace(/\\n/g, '\n');
+
+        // Add proper spacing for better readability
+        formatted = formatted
+            .replace(/\*\*(.*?)\*\*/g, '**$1**') // Keep markdown bold formatting
+            .replace(/\n\n+/g, '\n\n') // Normalize multiple line breaks
+            .replace(/(\d+\.)\s+/g, '\n$1 ') // Format numbered lists
+            .replace(/\*\s+/g, '\n• ') // Format bullet points
+            .replace(/^-\s+/gm, '• ') // Convert dashes to bullets
+            .replace(/(\n\s*){3,}/g, '\n\n') // Remove excessive whitespace
+            .trim();
+
+        // Ensure proper paragraph spacing for SOP content
+        if (formatted.includes('SOP') || formatted.includes('Halaman Dokumen:')) {
+            formatted = formatted
+                .replace(/\n([A-Z][^:]*:)/g, '\n\n**$1**') // Bold section headers
+                .replace(/\n(\d+\.\s+)/g, '\n$1') // Format numbered items
+                .replace(/(\*{2}[^*]+\*{2})\n(?!\n)/g, '$1\n'); // Add space after bold headers
+        }
+
+        return formatted;
+    };
+
+    // Fallback responses when API is not available
+    const getFallbackResponse = (messageText: string): string => {
+        // Specific responses for quick replies
+        if (messageText.includes("daftar")) {
+            return "Untuk mendaftar sebagai anggota SILUK, Anda perlu: 1) Mengisi formulir, 2) Menyiapkan dokumen, 3) Setor simpanan pokok, 4) Verifikasi data. Proses sangat mudah! 😊";
+        } else if (
+            messageText.includes("simpanan") ||
+            messageText.includes("pinjaman")
+        ) {
+            return "SILUK menyediakan berbagai produk simpanan (tabungan, deposito) dan pinjaman (konsumtif, produktif) dengan bunga kompetitif. Hubungi kami untuk konsultasi! 💰";
+        } else if (messageText.includes("laporan")) {
+            return "Laporan keuangan SILUK dipublikasikan setiap bulan dan dapat diakses di website. Kami berkomitmen untuk transparansi penuh! 📊";
+        } else if (
+            messageText.includes("kantor") ||
+            messageText.includes("cabang")
+        ) {
+            return "Kantor pusat SILUK di Jakarta, dengan cabang di Bandung, Surabaya, dan Medan. Kunjungi halaman kontak untuk alamat lengkap! 🏢";
+        } else if (messageText.includes("customer service")) {
+            return "Tim customer service SILUK siap melayani Anda di (021) 123-4567 atau email: cs@siluk.co.id. Kami online 24/7! 📞";
+        } else if (messageText.includes("syarat") || messageText.includes("ketentuan")) {
+            return "**Syarat Keanggotaan SILUK:**\n1. WNI berusia minimal 17 tahun\n2. Mengisi formulir pendaftaran\n3. Fotokopi KTP yang masih berlaku\n4. Setoran simpanan pokok Rp. 100.000\n5. Setoran simpanan wajib minimal Rp. 50.000/bulan 💳";
+        } else if (messageText.includes("jenis produk") || messageText.includes("produk koperasi")) {
+            return "**Produk SILUK:**\n• **Simpanan:** Tabungan, Deposito, Simpanan Berjangka\n• **Pinjaman:** Konsumtif, Produktif, Multiguna\n• **Investasi:** SHU, Sertifikat Modal\n• **Layanan:** Transfer, Pembayaran, Mobile Banking 🏦";
+        } else if (messageText.includes("suku bunga") || messageText.includes("bunga simpanan")) {
+            return "**Suku Bunga Simpanan SILUK:**\n• Tabungan: 3-4% per tahun\n• Deposito 6 bulan: 5-6% per tahun\n• Deposito 12 bulan: 6-7% per tahun\n• Simpanan Berjangka: 4-5% per tahun\n*Bunga dapat berubah sesuai kebijakan 📈";
+        } else if (messageText.includes("pinjaman usaha") || messageText.includes("usaha mikro")) {
+            return "**Pinjaman Usaha Mikro SILUK:**\n• Plafon: Rp. 500.000 - Rp. 50.000.000\n• Bunga: 12-18% per tahun\n• Jangka waktu: 6-36 bulan\n• Agunan: Sesuai plafon pinjaman\n• Syarat: Usaha berjalan min. 6 bulan 💼";
+        } else if (messageText.includes("SHU") || messageText.includes("Sisa Hasil Usaha")) {
+            return "**Program SHU (Sisa Hasil Usaha):**\nSHU dibagikan kepada anggota setiap akhir tahun berdasarkan:\n• Kontribusi simpanan (40%)\n• Volume transaksi (40%)\n• Partisipasi kegiatan (20%)\nSHU tahun lalu rata-rata 8-12% dari simpanan 🎯";
+        } else if (messageText.includes("layanan digital") || messageText.includes("digital banking")) {
+            return "**Layanan Digital SILUK:**\n• Mobile Banking SILUK App\n• Internet Banking\n• SMS Banking\n• Transfer antar bank\n• Pembayaran tagihan\n• Top up e-wallet\n• QR Payment 📱";
+        } else if (messageText.includes("jam operasional") || messageText.includes("buka tutup")) {
+            return "**Jam Operasional SILUK:**\n• **Senin-Jumat:** 08.00 - 16.00 WIB\n• **Sabtu:** 08.00 - 12.00 WIB\n• **Minggu & Libur:** Tutup\n• **Call Center:** 24/7\n• **Mobile Banking:** 24/7 ⏰";
+        } else if (messageText.includes("dokumen") || messageText.includes("persyaratan")) {
+            return "**Dokumen yang Diperlukan:**\n• KTP asli + fotokopi\n• NPWP (untuk pinjaman > 50 juta)\n• Slip gaji/Surat keterangan penghasilan\n• Rekening koran 3 bulan terakhir\n• Foto 4x6 (2 lembar)\n• Materai 10.000 📋";
+        } else if (messageText.includes("keamanan") || messageText.includes("transaksi aman")) {
+            return "**Keamanan Transaksi SILUK:**\n• Enkripsi SSL 256-bit\n• Two-Factor Authentication (2FA)\n• Token SMS untuk verifikasi\n• Monitoring transaksi 24/7\n• Auto logout sistem\n• Backup data real-time\n**Jangan bagikan PIN/Password kepada siapapun!** 🔒";
+        } else if (messageText.includes("call center") || messageText.includes("nomor telepon")) {
+            return "**Contact Center SILUK:**\n📞 **Hotline:** (021) 123-4567\n📞 **WhatsApp:** 0812-3456-7890\n📧 **Email:** cs@siluk.co.id\n💬 **Live Chat:** Website SILUK\n**Layanan 24 jam untuk emergency!** 📞";
+        }
+
+        // Default fallback response
+        return defaultBotResponses[Math.floor(Math.random() * defaultBotResponses.length)];
+    };
+
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
     // Create notification sound
     useEffect(() => {
         // Create a simple notification sound using Web Audio API
@@ -363,7 +493,11 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
+<<<<<<< HEAD
     const handleSendMessage = (message?: string) => {
+=======
+    const handleSendMessage = async (message?: string) => {
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
         const messageText = message || inputValue;
         if (!messageText.trim()) return;
 
@@ -379,6 +513,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
         setIsTyping(true);
         setShowQuickReplies(false);
 
+<<<<<<< HEAD
         // Simulate bot response
         setTimeout(() => {
             let botResponse =
@@ -406,6 +541,33 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
             } else if (messageText.includes("customer service")) {
                 botResponse =
                     "Tim customer service SILUK siap melayani Anda di (021) 123-4567 atau email: cs@siluk.co.id. Kami online 24/7! 📞";
+=======
+        try {
+            // Get CSRF token from meta tag
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            // Call external chatbot API
+            const response = await fetch('/api/chatbot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken || '',
+                },
+                body: JSON.stringify({
+                    text: `Pada dokumen SOP KOP ${messageText}`,
+                }),
+            });
+
+            let botResponse = "";
+
+            if (response.ok) {
+                const responseText = await response.text();
+                // Format the response to make it more readable
+                botResponse = formatBotResponse(responseText);
+            } else {
+                // Fallback to predefined responses if API fails
+                botResponse = getFallbackResponse(messageText);
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
             }
 
             const botMessage: Message = {
@@ -450,7 +612,30 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
             } catch (error) {
                 console.log("Audio notification not supported");
             }
+<<<<<<< HEAD
         }, 1000 + Math.random() * 2000);
+=======
+        } catch (error) {
+            console.error("Error calling chatbot API:", error);
+
+            // Fallback to predefined responses if API call fails
+            const botResponse = getFallbackResponse(messageText);
+
+            const botMessage: Message = {
+                id: (Date.now() + 1).toString(),
+                text: botResponse,
+                sender: "bot",
+                timestamp: new Date(),
+            };
+
+            setMessages((prev) => [...prev, botMessage]);
+            setIsTyping(false);
+
+            if (!isOpen) {
+                setHasNewMessage(true);
+            }
+        }
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -484,11 +669,18 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
             <div className="chat-widget fixed bottom-6 right-6 z-50">
                 {/* Chat Window */}
                 <div
+<<<<<<< HEAD
                     className={`absolute bottom-20 right-0 w-80 h-96 rounded-lg shadow-2xl transform transition-all duration-300 ease-in-out ${
                         isOpen
                             ? "scale-100 opacity-100 translate-y-0"
                             : "scale-95 opacity-0 translate-y-4 pointer-events-none"
                     }`}
+=======
+                    className={`absolute bottom-20 right-0 w-80 h-96 rounded-lg shadow-2xl transform transition-all duration-300 ease-in-out ${isOpen
+                        ? "scale-100 opacity-100 translate-y-0"
+                        : "scale-95 opacity-0 translate-y-4 pointer-events-none"
+                        }`}
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
                     style={{ backgroundColor: theme.windowBg }}
                 >
                     {/* Header */}
@@ -522,6 +714,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                             >
                                 {darkMode ? (
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<<<<<<< HEAD
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                                               d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                                     </svg>
@@ -533,6 +726,19 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                                 )}
                             </button>
                             
+=======
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                                    </svg>
+                                ) : (
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                                    </svg>
+                                )}
+                            </button>
+
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
                             {/* Session List Button */}
                             <button
                                 onClick={() =>
@@ -601,9 +807,15 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
 
                     {/* Session List */}
                     {showSessionList && (
+<<<<<<< HEAD
                         <div className="session-list border-b" style={{ 
                             backgroundColor: theme.windowBg,
                             borderColor: darkMode ? '#4B5563' : '#E5E7EB' 
+=======
+                        <div className="session-list border-b" style={{
+                            backgroundColor: theme.windowBg,
+                            borderColor: darkMode ? '#4B5563' : '#E5E7EB'
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
                         }}>
                             <div className="p-3">
                                 <h4 className="text-sm font-medium mb-2" style={{ color: theme.textColor }}>
@@ -628,6 +840,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                                             .map((session) => (
                                                 <div
                                                     key={session.id}
+<<<<<<< HEAD
                                                     className={`session-list-item flex items-center justify-between p-2 rounded cursor-pointer ${
                                                         session.id ===
                                                         currentSessionId
@@ -640,18 +853,40 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                                                         borderColor: session.id === currentSessionId ? 
                                                             theme.sessionActiveBorder : 'transparent',
                                                      
+=======
+                                                    className={`session-list-item flex items-center justify-between p-2 rounded cursor-pointer ${session.id ===
+                                                        currentSessionId
+                                                        ? "active border"
+                                                        : ""
+                                                        }`}
+                                                    style={{
+                                                        backgroundColor: session.id === currentSessionId ?
+                                                            theme.sessionActive : 'transparent',
+                                                        borderColor: session.id === currentSessionId ?
+                                                            theme.sessionActiveBorder : 'transparent',
+
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
                                                     }}
                                                     onClick={() =>
                                                         loadSession(session.id)
                                                     }
                                                 >
                                                     <div className="flex-1 min-w-0">
+<<<<<<< HEAD
                                                         <p className="text-xs font-medium truncate" 
                                                            style={{ color: theme.sessionText }}>
                                                             {session.title}
                                                         </p>
                                                         <p className="text-xs message-timestamp"
                                                            style={{ color: theme.sessionMeta }}>
+=======
+                                                        <p className="text-xs font-medium truncate"
+                                                            style={{ color: theme.sessionText }}>
+                                                            {session.title}
+                                                        </p>
+                                                        <p className="text-xs message-timestamp"
+                                                            style={{ color: theme.sessionMeta }}>
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
                                                             {new Date(
                                                                 session.lastActivity
                                                             ).toLocaleDateString(
@@ -708,6 +943,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                             {messages.map((message) => (
                                 <div
                                     key={message.id}
+<<<<<<< HEAD
                                     className={`message-item flex ${
                                         message.sender === "user"
                                             ? "justify-end"
@@ -720,6 +956,18 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                                                 ? "text-white shadow-md"
                                                 : "text-gray-800 shadow-sm border"
                                         }`}
+=======
+                                    className={`message-item flex ${message.sender === "user"
+                                        ? "justify-end"
+                                        : "justify-start"
+                                        }`}
+                                >
+                                    <div
+                                        className={`max-w-xs px-3 py-2 rounded-lg ${message.sender === "user"
+                                            ? "text-white shadow-md"
+                                            : "text-gray-800 shadow-sm border"
+                                            }`}
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
                                         style={{
                                             backgroundColor:
                                                 message.sender === "user"
@@ -729,18 +977,42 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                                                 message.sender === "user"
                                                     ? theme.userMessageText
                                                     : theme.botMessageText,
+<<<<<<< HEAD
                                             borderColor: 
                                                 message.sender === "user" 
+=======
+                                            borderColor:
+                                                message.sender === "user"
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
                                                     ? "transparent"
                                                     : theme.botMessageBorder
                                         }}
                                     >
+<<<<<<< HEAD
                                         <p className="text-sm">
                                             {message.text}
                                         </p>
                                         <p
                                             className="message-timestamp text-xs mt-1"
                                             style={{ 
+=======
+                                        <div
+                                            className="text-sm"
+                                            style={{
+                                                whiteSpace: "pre-wrap",
+                                                lineHeight: "1.5"
+                                            }}
+                                            dangerouslySetInnerHTML={{
+                                                __html: message.text
+                                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                                    .replace(/\n/g, '<br>')
+                                                    .replace(/•/g, '•')
+                                            }}
+                                        />
+                                        <p
+                                            className="message-timestamp text-xs mt-1"
+                                            style={{
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
                                                 color: message.sender === "user"
                                                     ? "rgba(255, 255, 255, 0.7)"
                                                     : darkMode ? "#9CA3AF" : "#6B7280"
@@ -756,6 +1028,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                             {isTyping && (
                                 <div className="flex justify-start">
                                     <div className="px-3 py-2 rounded-lg shadow-sm border"
+<<<<<<< HEAD
                                          style={{
                                             backgroundColor: theme.botMessageBg,
                                             borderColor: theme.botMessageBorder
@@ -763,6 +1036,15 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                                         <div className="flex space-x-1">
                                             <div className="w-2 h-2 rounded-full animate-bounce"
                                                  style={{ backgroundColor: darkMode ? "#9CA3AF" : "#6B7280" }}></div>
+=======
+                                        style={{
+                                            backgroundColor: theme.botMessageBg,
+                                            borderColor: theme.botMessageBorder
+                                        }}>
+                                        <div className="flex space-x-1">
+                                            <div className="w-2 h-2 rounded-full animate-bounce"
+                                                style={{ backgroundColor: darkMode ? "#9CA3AF" : "#6B7280" }}></div>
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
                                             <div
                                                 className="w-2 h-2 rounded-full animate-bounce"
                                                 style={{
@@ -788,39 +1070,70 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                         {/* Quick Replies */}
                         {showQuickReplies && messages.length === 1 && (
                             <div className="px-4 pb-2">
+<<<<<<< HEAD
                                 <p className="text-xs mb-2" 
                                    style={{ color: darkMode ? "#9CA3AF" : "#6B7280" }}>
                                     Pilih topik yang ingin ditanyakan:
                                 </p>
                                 <div className="flex flex-wrap gap-2">
+=======
+                                <p className="text-xs mb-3 font-medium"
+                                    style={{ color: darkMode ? "#9CA3AF" : "#6B7280" }}>
+                                    💡 Pilih topik yang ingin ditanyakan:
+                                </p>
+                                <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto">
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
                                     {quickReplies.map((reply, index) => (
                                         <button
                                             key={index}
                                             onClick={() =>
                                                 handleQuickReply(reply)
                                             }
+<<<<<<< HEAD
                                             className="text-xs px-3 py-1 rounded-full transition-colors"
                                             style={{ 
                                                 backgroundColor: theme.quickReplyBg,
                                                 color: theme.quickReplyText,
                                                
                                                 
+=======
+                                            className="text-xs px-3 py-2 rounded-lg transition-all duration-200 hover:shadow-sm text-left"
+                                            style={{
+                                                backgroundColor: theme.quickReplyBg,
+                                                color: theme.quickReplyText,
+                                                border: `1px solid ${darkMode ? '#374151' : '#E5E7EB'}`
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
                                             }}
                                         >
                                             {reply}
                                         </button>
                                     ))}
                                 </div>
+<<<<<<< HEAD
+=======
+                                <p className="text-xs mt-2 opacity-75"
+                                    style={{ color: darkMode ? "#9CA3AF" : "#6B7280" }}>
+                                    Atau ketik pertanyaan Anda...
+                                </p>
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
                             </div>
                         )}
                     </div>
 
                     {/* Input */}
+<<<<<<< HEAD
                     <div className="p-4 rounded-b-lg border-t" 
                          style={{ 
                              backgroundColor: theme.windowBg,
                              borderColor: darkMode ? '#4B5563' : '#E5E7EB' 
                          }}>
+=======
+                    <div className="p-4 rounded-b-lg border-t"
+                        style={{
+                            backgroundColor: theme.windowBg,
+                            borderColor: darkMode ? '#4B5563' : '#E5E7EB'
+                        }}>
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
                         <div className="flex space-x-2">
                             <input
                                 ref={inputRef}
@@ -834,7 +1147,11 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                                     backgroundColor: theme.inputBg,
                                     borderColor: theme.inputBorder,
                                     color: theme.inputText,
+<<<<<<< HEAD
                                   
+=======
+
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
                                 }}
                             />
                             <button
@@ -868,9 +1185,14 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                 {/* Chat Button */}
                 <button
                     onClick={toggleChat}
+<<<<<<< HEAD
                     className={`relative w-16 h-16 rounded-full text-white shadow-lg transform transition-all duration-200 hover:scale-110 ${
                         isOpen ? "rotate-0" : "rotate-0 hover:rotate-12"
                     }`}
+=======
+                    className={`relative w-16 h-16 rounded-full text-white shadow-lg transform transition-all duration-200 hover:scale-110 ${isOpen ? "rotate-0" : "rotate-0 hover:rotate-12"
+                        }`}
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
                     style={{ backgroundColor: primaryColor }}
                 >
                     {/* Notification Badge */}
@@ -884,9 +1206,14 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
 
                     {/* Icon */}
                     <div
+<<<<<<< HEAD
                         className={`transform transition-transform duration-200 ${
                             isOpen ? "rotate-180" : "rotate-0"
                         }`}
+=======
+                        className={`transform transition-transform duration-200 ${isOpen ? "rotate-180" : "rotate-0"
+                            }`}
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
                     >
                         {isOpen ? (
                             <svg
@@ -923,6 +1250,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                 {/* Floating Animation Circles */}
                 <div className="absolute inset-0 pointer-events-none">
                     <div
+<<<<<<< HEAD
                         className={`absolute w-20 h-20 rounded-full opacity-20 animate-ping ${
                             isOpen ? "hidden" : ""
                         }`}
@@ -932,6 +1260,15 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                         className={`absolute w-16 h-16 rounded-full opacity-30 animate-ping ${
                             isOpen ? "hidden" : ""
                         }`}
+=======
+                        className={`absolute w-20 h-20 rounded-full opacity-20 animate-ping ${isOpen ? "hidden" : ""
+                            }`}
+                        style={{ backgroundColor: primaryColor }}
+                    ></div>
+                    <div
+                        className={`absolute w-16 h-16 rounded-full opacity-30 animate-ping ${isOpen ? "hidden" : ""
+                            }`}
+>>>>>>> aa0dcb2cd0cd4f415b7470d516bd7fca83a26a48
                         style={{
                             backgroundColor: accentColor,
                             animationDelay: "1s",
