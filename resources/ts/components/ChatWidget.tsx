@@ -480,7 +480,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                     'X-CSRF-TOKEN': csrfToken || '',
                 },
                 body: JSON.stringify({
-                    text: `Pada dokumen SOP KOP ${messageText}`,
+                    text: messageText,
                 }),
             });
 
