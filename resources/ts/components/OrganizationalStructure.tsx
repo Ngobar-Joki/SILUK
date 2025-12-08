@@ -1,8 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import useOrganizationalStructure from "../hooks/useOrganizationalStructure";
 
 const OrganizationalStructure: React.FC = () => {
     const { data, loading, error, refetch } = useOrganizationalStructure();
+    const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
+
+    const handleImageError = (itemId: number) => {
+        setFailedImages(prev => new Set(prev).add(itemId));
+    };
 
     if (loading) {
         return (
@@ -130,19 +135,47 @@ const OrganizationalStructure: React.FC = () => {
                                 border: "3px solid #e5e7eb",
                             }}
                         >
-                            <img
-                                src={`/storage/${item.foto}`}
-                                alt={`Struktur Organisasi ${index + 1}`}
-                                style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                }}
-                                onError={(e) => {
-                                    e.currentTarget.src =
-                                        "/images/default-org-structure.png";
-                                }}
-                            />
+                            {failedImages.has(item.id) ? (
+                                <div
+                                    style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        backgroundColor: "#f3f4f6",
+                                        color: "#9ca3af",
+                                    }}
+                                >
+                                    <svg
+                                        width="80"
+                                        height="80"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="1.5"
+                                    >
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                        <circle cx="8.5" cy="8.5" r="1.5" />
+                                        <polyline points="21 15 16 10 5 21" />
+                                    </svg>
+                                    <p style={{ marginTop: "0.5rem", fontSize: "0.9rem" }}>
+                                        Gambar tidak tersedia
+                                    </p>
+                                </div>
+                            ) : (
+                                <img
+                                    src={`/storage/${item.foto}`}
+                                    alt={`Struktur Organisasi ${index + 1}`}
+                                    style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        objectFit: "cover",
+                                    }}
+                                    onError={() => handleImageError(item.id)}
+                                />
+                            )}
                         </div>
                         <div style={{ marginTop: "1rem" }}>
                             <h4

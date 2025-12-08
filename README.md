@@ -7,7 +7,6 @@ A Laravel-based web application for SILUK system.
 Before installing this project, make sure you have the following installed on your system:
 
 -   PHP >= 8.2
--   PHP >= 8.2
 -   Composer
 -   Node.js & NPM
 -   MySQL/MariaDB
@@ -18,7 +17,6 @@ Before installing this project, make sure you have the following installed on yo
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Ngobar-Joki/SILUK.git
 git clone https://github.com/Ngobar-Joki/SILUK.git
 cd SILUK
 ```
@@ -57,8 +55,6 @@ DB_DATABASE=siluk_db
 DB_USERNAME=root
 DB_PASSWORD=
 ```
-
-
 
 ### 6. Run Database Migrations
 

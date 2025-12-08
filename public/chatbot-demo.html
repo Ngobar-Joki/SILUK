@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Demo Chat Widget SILUK</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .demo-title {
+            color: #1E40AF;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .demo-subtitle {
+            color: #6B7280;
+            font-size: 1.1rem;
+        }
+
+        .demo-content {
+            background: #F9FAFB;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            background: white;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #1E40AF;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            color: #10B981;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .chat-preview {
+            background: white;
+            border: 2px dashed #D1D5DB;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            color: #6B7280;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1 class="demo-title">🏦 SILUK</h1>
+            <p class="demo-subtitle">Sistem Informasi Layanan Koperasi</p>
+        </div>
+
+        <div class="demo-content">
+            <h2 style="color: #1E40AF; margin-bottom: 20px;">Demo Chat Widget</h2>
+            <p>Chat widget SILUK telah terintegrasi dengan sistem AI yang dapat membantu memberikan informasi tentang
+                SOP (Standard Operating Procedure) koperasi.</p>
+
+            <h3 style="color: #374151; margin-top: 30px;">Fitur Chat Widget:</h3>
+            <ul class="feature-list">
+                <li>🤖 <strong>AI-Powered Responses</strong> - Integrasi dengan sistem chatbot eksternal</li>
+                <li>🌙 <strong>Dark/Light Mode</strong> - Dukungan tema gelap dan terang</li>
+                <li>📱 <strong>Responsive Design</strong> - Dapat digunakan di desktop dan mobile</li>
+                <li>💬 <strong>Session Management</strong> - Penyimpanan riwayat percakapan</li>
+                <li>🔔 <strong>Real-time Notifications</strong> - Notifikasi suara untuk pesan baru</li>
+                <li>⚡ <strong>Quick Replies</strong> - Pilihan cepat untuk pertanyaan umum</li>
+            </ul>
+
+            <h3 style="color: #374151; margin-top: 30px;">Cara Penggunaan:</h3>
+            <ol style="color: #6B7280; line-height: 1.6;">
+                <li>Klik tombol chat di pojok kanan bawah halaman</li>
+                <li>Pilih salah satu quick reply atau ketik pertanyaan Anda</li>
+                <li>Bot akan memberikan respons berdasarkan dokumen SOP koperasi</li>
+                <li>Semua percakapan akan tersimpan dalam session</li>
+            </ol>
+        </div>
+
+        <div class="chat-preview">
+            <p><strong>Chat Widget akan muncul di pojok kanan bawah halaman</strong></p>
+            <p>Scroll ke bawah atau tunggu beberapa detik untuk melihat widget chat 👇</p>
+        </div>
+    </div>
+
+    <!-- Chat Widget Container -->
+    <div id="chat-widget-root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Copy the entire ChatWidget component here (simplified version for demo)
+        function ChatWidgetDemo() {
+            const [isOpen, setIsOpen] = useState(false);
+            const [messages, setMessages] = useState([]);
+            const [inputValue, setInputValue] = useState("");
+            const [isTyping, setIsTyping] = useState(false);
+            const [darkMode, setDarkMode] = useState(false);
+
+            const messagesEndRef = useRef(null);
+            const inputRef = useRef(null);
+
+            const botName = "Nito";
+            const primaryColor = "#1E40AF";
+
+            useEffect(() => {
+                if (messages.length === 0) {
+                    setMessages([{
+                        id: "welcome-" + Date.now(),
+                        text: `Halo! Saya ${botName}, asisten virtual SILUK. Ada yang bisa saya bantu hari ini? 😊`,
+                        sender: "bot",
+                        timestamp: new Date(),
+                    }]);
+                }
+            }, []);
+
+            useEffect(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+            }, [messages]);
+
+            const handleSendMessage = async (message) => {
+                const messageText = message || inputValue;
+                if (!messageText.trim()) return;
+
+                const newMessage = {
+                    id: Date.now().toString(),
+                    text: messageText,
+                    sender: "user",
+                    timestamp: new Date(),
+                };
+
+                setMessages(prev => [...prev, newMessage]);
+                setInputValue("");
+                setIsTyping(true);
+
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+                    const response = await fetch('/api/chatbot', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken || '',
+                        },
+                        body: JSON.stringify({
+                            text: `Pada dokumen SOP KOP ${messageText}`,
+                        }),
+                    });
+
+                    let botResponse = "";
+
+                    if (response.ok) {
+                        const responseText = await response.text();
+                        botResponse = formatBotResponse(responseText);
+                    } else {
+                        botResponse = getFallbackResponse(messageText);
+                    }
+
+                    const botMessage = {
+                        id: (Date.now() + 1).toString(),
+                        text: botResponse,
+                        sender: "bot",
+                        timestamp: new Date(),
+                    };
+
+                    setMessages(prev => [...prev, botMessage]);
+                    setIsTyping(false);
+                } catch (error) {
+                    console.error("Error calling chatbot API:", error);
+
+                    const botResponse = getFallbackResponse(messageText);
+
+                    const botMessage = {
+                        id: (Date.now() + 1).toString(),
+                        text: botResponse,
+                        sender: "bot",
+                        timestamp: new Date(),
+                    };
+
+                    setMessages(prev => [...prev, botMessage]);
+                    setIsTyping(false);
+                }
+            };
+
+            const formatBotResponse = (responseText) => {
+                if (!responseText) return "Maaf, saya tidak dapat memproses pertanyaan Anda saat ini.";
+
+                let formatted = responseText.replace(/\\n/g, '\n');
+                formatted = formatted
+                    .replace(/\*\*(.*?)\*\*/g, '$1')
+                    .replace(/\n\n/g, '\n\n')
+                    .replace(/(\d+\.)\s+/g, '\n$1 ')
+                    .replace(/\*\s+/g, '\n• ')
+                    .trim();
+
+                return formatted;
+            };
+
+            const getFallbackResponse = (messageText) => {
+                const responses = [
+                    "Terima kasih telah menghubungi SILUK! Tim customer service kami akan segera membantu Anda. 😊",
+                    "Untuk informasi lengkap mengenai SOP koperasi, silakan hubungi tim support SILUK.",
+                    "Saya akan mencari informasi yang Anda butuhkan dalam dokumen SOP koperasi.",
+                ];
+
+                if (messageText.includes("pelatihan")) {
+                    return "SOP Pelatihan Perkoperasian mencakup berbagai aspek pengembangan SDM koperasi. Silakan hubungi bagian pelatihan untuk informasi lebih lanjut.";
+                }
+
+                return responses[Math.floor(Math.random() * responses.length)];
+            };
+
+            const quickReplies = [
+                "📝 SOP Pelatihan Perkoperasian",
+                "💰 Info simpanan & pinjaman",
+                "📊 Lihat laporan keuangan",
+                "🏢 Lokasi kantor cabang",
+                "📞 Hubungi customer service",
+            ];
+
+            const formatTime = (date) => {
+                return date.toLocaleTimeString("id-ID", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                });
+            };
+
+            const theme = {
+                windowBg: darkMode ? '#1F2937' : 'white',
+                chatAreaBg: darkMode ? '#111827' : '#F9FAFB',
+                textColor: darkMode ? '#E5E7EB' : '#1F2937',
+                inputBg: darkMode ? '#374151' : 'white',
+                inputBorder: darkMode ? '#4B5563' : '#D1D5DB',
+                userMessageBg: primaryColor,
+                botMessageBg: darkMode ? '#374151' : 'white',
+                botMessageBorder: darkMode ? '#4B5563' : '#E5E7EB',
+                botMessageText: darkMode ? '#E5E7EB' : '#1F2937',
+                quickReplyBg: darkMode ? '#374151' : '#F3F4F6',
+                quickReplyText: darkMode ? '#E5E7EB' : '#1F2937',
+            };
+
+            return (
+                <div className="chat-widget fixed bottom-6 right-6 z-50">
+                    {/* Chat Window */}
+                    <div
+                        className={`absolute bottom-20 right-0 w-80 h-96 rounded-lg shadow-2xl transform transition-all duration-300 ease-in-out ${isOpen
+                                ? "scale-100 opacity-100 translate-y-0"
+                                : "scale-95 opacity-0 translate-y-4 pointer-events-none"
+                            }`}
+                        style={{ backgroundColor: theme.windowBg }}
+                    >
+                        {/* Header */}
+                        <div
+                            className="flex items-center justify-between p-4 rounded-t-lg text-white"
+                            style={{ backgroundColor: primaryColor }}
+                        >
+                            <div className="flex items-center space-x-3">
+                                <div className="relative">
+                                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
+                                        <span className="text-xl">🏦</span>
+                                    </div>
+                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-sm">{botName}</h3>
+                                    <p className="text-xs opacity-90">Asisten Virtual SILUK</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsOpen(false)}
+                                className="text-white hover:bg-white/10 rounded-full p-1 transition-colors"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Messages */}
+                        <div className="flex-1 p-4 h-64 overflow-y-auto" style={{ backgroundColor: theme.chatAreaBg }}>
+                            <div className="space-y-3">
+                                {messages.map((message) => (
+                                    <div
+                                        key={message.id}
+                                        className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
+                                    >
+                                        <div
+                                            className={`max-w-xs px-3 py-2 rounded-lg ${message.sender === "user"
+                                                    ? "text-white shadow-md"
+                                                    : "shadow-sm border"
+                                                }`}
+                                            style={{
+                                                backgroundColor: message.sender === "user" ? theme.userMessageBg : theme.botMessageBg,
+                                                color: message.sender === "user" ? "white" : theme.botMessageText,
+                                                borderColor: message.sender === "user" ? "transparent" : theme.botMessageBorder,
+                                                whiteSpace: 'pre-line'
+                                            }}
+                                        >
+                                            <p className="text-sm">{message.text}</p>
+                                            <p className="text-xs mt-1 opacity-70">
+                                                {formatTime(message.timestamp)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* Typing Indicator */}
+                                {isTyping && (
+                                    <div className="flex justify-start">
+                                        <div className="px-3 py-2 rounded-lg shadow-sm border"
+                                            style={{ backgroundColor: theme.botMessageBg, borderColor: theme.botMessageBorder }}>
+                                            <div className="flex space-x-1">
+                                                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+                                                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                                                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div ref={messagesEndRef} />
+                            </div>
+
+                            {/* Quick Replies */}
+                            {messages.length === 1 && (
+                                <div className="mt-4">
+                                    <p className="text-xs mb-2 text-gray-500">Pilih topik yang ingin ditanyakan:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {quickReplies.map((reply, index) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => handleSendMessage(reply)}
+                                                className="text-xs px-3 py-1 rounded-full transition-colors hover:opacity-80"
+                                                style={{
+                                                    backgroundColor: theme.quickReplyBg,
+                                                    color: theme.quickReplyText
+                                                }}
+                                            >
+                                                {reply}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Input */}
+                        <div className="p-4 rounded-b-lg border-t"
+                            style={{ backgroundColor: theme.windowBg, borderColor: theme.inputBorder }}>
+                            <div className="flex space-x-2">
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    onKeyPress={(e) => {
+                                        if (e.key === "Enter" && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSendMessage();
+                                        }
+                                    }}
+                                    placeholder="Ketik pesan Anda..."
+                                    className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-sm"
+                                    style={{
+                                        backgroundColor: theme.inputBg,
+                                        borderColor: theme.inputBorder,
+                                        color: theme.textColor,
+                                        focusRingColor: primaryColor
+                                    }}
+                                />
+                                <button
+                                    onClick={() => handleSendMessage()}
+                                    disabled={!inputValue.trim()}
+                                    className="px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    style={{ backgroundColor: inputValue.trim() ? primaryColor : "#9CA3AF" }}
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Chat Button */}
+                    <button
+                        onClick={() => setIsOpen(!isOpen)}
+                        className="relative w-16 h-16 rounded-full text-white shadow-lg transform transition-all duration-200 hover:scale-110"
+                        style={{ backgroundColor: primaryColor }}
+                    >
+                        <div className={`transform transition-transform duration-200 ${isOpen ? "rotate-180" : "rotate-0"}`}>
+                            {isOpen ? (
+                                <svg className="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            ) : (
+                                <svg className="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                </svg>
+                            )}
+                        </div>
+                    </button>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<ChatWidgetDemo />, document.getElementById('chat-widget-root'));
+    </script>
+</body>
+
+</html>
