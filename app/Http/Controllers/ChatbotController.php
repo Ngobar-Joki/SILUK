@@ -26,27 +26,60 @@ class ChatbotController extends Controller
                 return $this->getFallbackResponse();
             }
 
-            // Make HTTP GET request to external chatbot API with JSON body
+            // Log the request for debugging
+            Log::info('Chatbot API Request:', [
+                'url' => $chatbotUrl,
+                'text' => substr($text, 0, 100),
+                'has_token' => !empty($chatbotToken)
+            ]);
+
+            // Make HTTP POST request to external chatbot API with JSON body
             $response = Http::timeout(30)
                 ->withHeaders([
-                    'Bearer' => $chatbotToken,  // Fixed: removed colon, space will be added automatically
+                    'Authorization' => 'Bearer ' . $chatbotToken,
                     'Content-Type' => 'application/json',
-                    'Accept' => 'text/plain',
+                    'Accept' => '*/*',
                 ])
-                ->withBody(json_encode(['text' => $text]), 'application/json')
-                ->get($chatbotUrl);
+                ->post($chatbotUrl, ['chatInput' => $text]);
+
+            // Log full response details for debugging
+            Log::info('Chatbot API Full Response:', [
+                'status' => $response->status(),
+                'headers' => $response->headers(),
+                'body_length' => strlen($response->body()),
+                'body_preview' => substr($response->body(), 0, 500)
+            ]);
 
             if ($response->successful()) {
                 $responseBody = $response->body();
 
+                // Try to parse as JSON if body appears to be JSON
+                if (str_starts_with(trim($responseBody), '{') || str_starts_with(trim($responseBody), '[')) {
+                    $jsonData = json_decode($responseBody, true);
+                    if ($jsonData !== null) {
+                        // Extract text from common JSON response formats
+                        if (isset($jsonData['response'])) {
+                            $responseBody = $jsonData['response'];
+                        } elseif (isset($jsonData['text'])) {
+                            $responseBody = $jsonData['text'];
+                        } elseif (isset($jsonData['message'])) {
+                            $responseBody = $jsonData['message'];
+                        } elseif (isset($jsonData['answer'])) {
+                            $responseBody = $jsonData['answer'];
+                        } elseif (isset($jsonData['output'])) {
+                            $responseBody = $jsonData['output'];
+                        }
+                    }
+                }
+
                 // Validate response is not empty
                 if (empty(trim($responseBody))) {
-                    Log::warning('Chatbot API returned empty response');
+                    Log::warning('Chatbot API returned empty response after processing');
                     return $this->getFallbackResponse();
                 }
 
                 // Log the response for debugging
-                Log::info('Chatbot API Response:', [
+                Log::info('Chatbot API Success:', [
                     'text' => substr($text, 0, 100),
                     'response_length' => strlen($responseBody)
                 ]);
@@ -59,7 +92,7 @@ class ChatbotController extends Controller
 
                 Log::error('Chatbot API Error:', [
                     'status' => $status,
-                    'body' => substr($body, 0, 200),
+                    'body' => substr($body, 0, 500),
                     'request_text' => substr($text, 0, 100)
                 ]);
 

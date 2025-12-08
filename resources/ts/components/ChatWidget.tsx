@@ -384,28 +384,27 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
             let botResponse =
                 botResponses[Math.floor(Math.random() * botResponses.length)];
 
-            // Specific responses for quick replies
-            if (messageText.includes("daftar")) {
-                botResponse =
-                    "Untuk mendaftar sebagai anggota SILUK, Anda perlu: 1) Mengisi formulir, 2) Menyiapkan dokumen, 3) Setor simpanan pokok, 4) Verifikasi data. Proses sangat mudah! 😊";
-            } else if (
-                messageText.includes("simpanan") ||
-                messageText.includes("pinjaman")
-            ) {
-                botResponse =
-                    "SILUK menyediakan berbagai produk simpanan (tabungan, deposito) dan pinjaman (konsumtif, produktif) dengan bunga kompetitif. Hubungi kami untuk konsultasi! 💰";
-            } else if (messageText.includes("laporan")) {
-                botResponse =
-                    "Laporan keuangan SILUK dipublikasikan setiap bulan dan dapat diakses di website. Kami berkomitmen untuk transparansi penuh! 📊";
-            } else if (
-                messageText.includes("kantor") ||
-                messageText.includes("cabang")
-            ) {
-                botResponse =
-                    "Kantor pusat SILUK di Jakarta, dengan cabang di Bandung, Surabaya, dan Medan. Kunjungi halaman kontak untuk alamat lengkap! 🏢";
-            } else if (messageText.includes("customer service")) {
-                botResponse =
-                    "Tim customer service SILUK siap melayani Anda di (021) 123-4567 atau email: cs@siluk.co.id. Kami online 24/7! 📞";
+            // Call external chatbot API
+            const response = await fetch('/api/chatbot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken || '',
+                },
+                body: JSON.stringify({
+                    text: messageText,
+                }),
+            });
+
+            let botResponse = "";
+
+            if (response.ok) {
+                const responseText = await response.text();
+                // Format the response to make it more readable
+                botResponse = formatBotResponse(responseText);
+            } else {
+                // Fallback to predefined responses if API fails
+                botResponse = getFallbackResponse(messageText);
             }
 
             const botMessage: Message = {
