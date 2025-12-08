@@ -898,36 +898,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                         </div>
 
                         {/* Quick Replies */}
-                        {showQuickReplies && messages.length === 1 && (
-                            <div className="px-4 pb-2">
-                                <p className="text-xs mb-3 font-medium"
-                                    style={{ color: darkMode ? "#9CA3AF" : "#6B7280" }}>
-                                    💡 Pilih topik yang ingin ditanyakan:
-                                </p>
-                                <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto">
-                                    {quickReplies.map((reply, index) => (
-                                        <button
-                                            key={index}
-                                            onClick={() =>
-                                                handleQuickReply(reply)
-                                            }
-                                            className="text-xs px-3 py-2 rounded-lg transition-all duration-200 hover:shadow-sm text-left"
-                                            style={{
-                                                backgroundColor: theme.quickReplyBg,
-                                                color: theme.quickReplyText,
-                                                border: `1px solid ${darkMode ? '#374151' : '#E5E7EB'}`
-                                            }}
-                                        >
-                                            {reply}
-                                        </button>
-                                    ))}
-                                </div>
-                                <p className="text-xs mt-2 opacity-75"
-                                    style={{ color: darkMode ? "#9CA3AF" : "#6B7280" }}>
-                                    Atau ketik pertanyaan Anda...
-                                </p>
-                            </div>
-                        )}
+
                     </div>
 
                     {/* Input */}
