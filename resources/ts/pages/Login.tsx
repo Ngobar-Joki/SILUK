@@ -368,12 +368,9 @@ const Login: React.FC = () => {
                             </a>
                         </p>
                         <p>
-                            Belum menerima email verifikasi?{" "}
-                            <a
-                                href="/resend-verification"
-                                className="register-link"
-                            >
-                                Kirim ulang
+                            Belum verifikasi akun?{" "}
+                            <a href="/verify-otp" className="register-link">
+                                Masukkan kode OTP
                             </a>
                         </p>
                     </div>

@@ -2,15 +2,15 @@ import React, { useState } from "react";
 import axios from "axios";
 
 interface ResendVerificationProps {
-    email?: string;
+    no_hp?: string;
     onSuccess?: () => void;
 }
 
 const ResendVerification: React.FC<ResendVerificationProps> = ({
-    email: initialEmail,
+    no_hp: initialNoHp,
     onSuccess,
 }) => {
-    const [email, setEmail] = useState(initialEmail || "");
+    const [no_hp, setNoHp] = useState(initialNoHp || "");
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
@@ -24,7 +24,7 @@ const ResendVerification: React.FC<ResendVerificationProps> = ({
         try {
             const response = await axios.post(
                 "/resend-verification",
-                { email },
+                { no_hp },
                 {
                     headers: {
                         "Content-Type": "application/json",
@@ -42,7 +42,7 @@ const ResendVerification: React.FC<ResendVerificationProps> = ({
         } catch (err: any) {
             setError(
                 err.response?.data?.message ||
-                    "Terjadi kesalahan saat mengirim email verifikasi"
+                    "Terjadi kesalahan saat mengirim pesan verifikasi WhatsApp"
             );
         } finally {
             setLoading(false);
@@ -53,13 +53,15 @@ const ResendVerification: React.FC<ResendVerificationProps> = ({
         <div className="resend-verification">
             <form onSubmit={handleResend} className="resend-form">
                 <div className="form-group">
-                    <label htmlFor="email">Email untuk verifikasi ulang</label>
+                    <label htmlFor="no_hp">
+                        Nomor WhatsApp untuk verifikasi ulang
+                    </label>
                     <input
-                        type="email"
-                        id="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Masukkan email Anda"
+                        type="tel"
+                        id="no_hp"
+                        value={no_hp}
+                        onChange={(e) => setNoHp(e.target.value)}
+                        placeholder="Masukkan nomor WhatsApp Anda (contoh: 628123456789)"
                         required
                     />
                 </div>
@@ -90,8 +92,8 @@ const ResendVerification: React.FC<ResendVerificationProps> = ({
                         </>
                     ) : (
                         <>
-                            <i className="fas fa-paper-plane"></i>
-                            Kirim Ulang Email Verifikasi
+                            <i className="fab fa-whatsapp"></i>
+                            Kirim Ulang Verifikasi via WhatsApp
                         </>
                     )}
                 </button>

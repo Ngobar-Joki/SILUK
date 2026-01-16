@@ -47,7 +47,14 @@ class verify_user extends Model
         return self::create([
             'user_id' => $userId,
             'token' => sha1(time() . uniqid()),
+            'otp_code' => self::generateOTP(),
             'expires_at' => Carbon::now()->addHours(24)
         ]);
+    }
+    
+    // Generate 6 digit OTP code
+    public static function generateOTP()
+    {
+        return str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     }
 }

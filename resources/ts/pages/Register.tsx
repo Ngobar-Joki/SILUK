@@ -96,24 +96,32 @@ const Register: React.FC = () => {
                 },
             });
 
-            if (response.data.success) {
-                setSuccess(response.data.message);
-                setFormData({
-                    name: "",
-                    email: "",
-                    username: "",
-                    no_hp: "",
-                    alamat: "",
-                    password: "",
-                    password_confirmation: "",
-                });
+            console.log("Registration response:", response.data);
 
-                // Redirect to login after 3 seconds
-                setTimeout(() => {
-                    window.location.href = "/login";
-                }, 3000);
+            if (response.data.success) {
+                console.log(
+                    "Registration successful, redirecting to:",
+                    response.data.redirect
+                );
+
+                // Show success message
+                setSuccess(response.data.message);
+
+                // Save noHp to localStorage for verify-otp page
+                if (formData.no_hp) {
+                    localStorage.setItem("verify_no_hp", formData.no_hp);
+                }
+
+                // Redirect LANGSUNG tanpa setTimeout - force hard reload
+                if (response.data.redirect) {
+                    console.log("Now redirecting...");
+                    // Force immediate redirect dengan replace agar tidak bisa back
+                    window.location.replace(response.data.redirect);
+                    return;
+                }
             }
         } catch (err: any) {
+            console.log("Registration error:", err.response?.data);
             if (err.response?.data?.errors) {
                 setErrors(err.response.data.errors);
             } else {

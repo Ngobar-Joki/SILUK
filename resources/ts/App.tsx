@@ -24,8 +24,8 @@ import DaftarLaporan from "./pages/operator/DaftarLaporan";
 import PengajuanPermohonan from "./pages/pendaftar/Permohonan";
 import LaporanBulanan from "./pages/pendaftar/LaporanBulanan";
 
-
 import ResendVerificationPage from "./pages/ResendVerificationPage";
+import VerifyOTPPage from "./pages/VerifyOTPPage";
 import { AccessibilityProvider } from "./contexts/AccessibilityContext";
 import AccessibilityWidget from "./components/AccessibilityWidget";
 
@@ -42,8 +42,7 @@ const App: React.FC = () => {
                             path="/daftar-user"
                             element={<DaftarUserPage />}
                         />
-                       
-                      
+
                         <Route path="/visi-misi" element={<VisiMisiPage />} />
                         <Route
                             path="/struktur-organisasi"
@@ -51,10 +50,7 @@ const App: React.FC = () => {
                         />
                         <Route path="/berita" element={<BeritaPage />} />
                         <Route path="/register" element={<Register />} />
-                        <Route
-                            path="/profile-user"
-                            element={<ProfileUser />}
-                        />
+                        <Route path="/profile-user" element={<ProfileUser />} />
                         <Route
                             path="/permohonan"
                             element={<PengajuanPermohonan />}
@@ -79,6 +75,7 @@ const App: React.FC = () => {
                             path="/resend-verification"
                             element={<ResendVerificationPage />}
                         />
+                        <Route path="/verify-otp" element={<VerifyOTPPage />} />
 
                         {/* Add more routes as needed */}
 
