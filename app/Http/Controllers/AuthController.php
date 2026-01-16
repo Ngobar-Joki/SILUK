@@ -4,12 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\verify_user;
-use App\Mail\VerifyMail;
+use App\Service\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 
@@ -43,12 +42,12 @@ class AuthController extends Controller
                 if ($request->expectsJson()) {
                     return response()->json([
                         'success' => false,
-                        'message' => "Akun Anda belum terverifikasi. Silakan cek email untuk verifikasi.",
+                        'message' => "Akun Anda belum terverifikasi. Silakan cek WhatsApp untuk link verifikasi.",
                     ], 401);
                 }
                 
                 return back()->withErrors([
-                    'username' => 'Akun Anda belum terverifikasi. Silakan cek email untuk verifikasi.',
+                    'username' => 'Akun Anda belum terverifikasi. Silakan cek WhatsApp untuk link verifikasi.',
                 ]);
             }
         } else {
@@ -195,32 +194,53 @@ class AuthController extends Controller
             ], 500);
         }
 
-        // Jika user berhasil dibuat, coba kirim email
+        // Jika user berhasil dibuat, coba kirim WhatsApp
         if ($user && $verifyUser) {
             try {
-                // Kirim email verifikasi
-                Mail::to($user->email)->send(new VerifyMail($user, $verifyUser->token));
+                // Kirim WhatsApp verifikasi dengan OTP
+                $whatsappService = new WhatsAppService();
                 
-                Log::info('Verification email sent successfully', ['user_id' => $user->id, 'email' => $user->email]);
+                // Format pesan dengan kode OTP
+                $message = "*SILUK - Verifikasi Akun*\n\n";
+                $message .= "Halo *{$user->name}*,\n\n";
+                $message .= "Selamat datang di SILUK!\n\n";
+                $message .= "Kode verifikasi Anda adalah:\n\n";
+                $message .= "*{$verifyUser->otp_code}*\n\n";
+                $message .= "Masukkan kode di atas pada halaman verifikasi.\n\n";
+                $message .= "_Kode berlaku selama 24 jam_\n\n";
+                $message .= "Terima kasih! 🙏";
+                
+                $response = $whatsappService->sendMessage($user->no_hp, $message);
+                
+                Log::info('Verification WhatsApp sent successfully', [
+                    'user_id' => $user->id, 
+                    'no_hp' => $user->no_hp,
+                    'response' => $response
+                ]);
 
+                // Simpan nomor HP ke session untuk halaman OTP
+                session(['verify_no_hp' => $user->no_hp]);
+
+                // Return JSON response dengan redirect URL
                 return response()->json([
                     'success' => true,
-                    'message' => 'Registrasi berhasil! Silakan cek email Anda untuk verifikasi akun.',
+                    'message' => 'Registrasi berhasil! Silakan masukkan kode OTP yang telah dikirim ke WhatsApp Anda.',
+                    'redirect' => '/verify-otp'
                 ]);
 
             } catch (\Exception $e) {
-                Log::error('Email sending failed: ' . $e->getMessage(), [
+                Log::error('WhatsApp sending failed: ' . $e->getMessage(), [
                     'user_id' => $user->id,
-                    'email' => $user->email,
+                    'no_hp' => $user->no_hp,
                     'trace' => $e->getTraceAsString()
                 ]);
                 
-                // User sudah terdaftar, tapi email gagal terkirim
+                // User sudah terdaftar, tapi WhatsApp gagal terkirim
                 return response()->json([
                     'success' => true,
-                    'message' => 'Registrasi berhasil! Namun email verifikasi gagal terkirim. Anda dapat meminta kirim ulang email verifikasi.',
-                    'email_failed' => true,
-                    'user_email' => $user->email
+                    'message' => 'Registrasi berhasil! Namun pesan WhatsApp verifikasi gagal terkirim. Anda dapat meminta kirim ulang verifikasi.',
+                    'wa_failed' => true,
+                    'user_no_hp' => $user->no_hp
                 ]);
             }
         }
@@ -244,10 +264,10 @@ class AuthController extends Controller
                 // Hapus token setelah verifikasi berhasil
                 verify_user::where('user_id', $user->id)->delete();
                 
-                $status = "Email Anda telah berhasil diverifikasi. Anda sekarang dapat login ke akun Anda.";
+                $status = "Akun Anda telah berhasil diverifikasi. Anda sekarang dapat login ke akun Anda.";
                 $success = true;
             } else {
-                $status = "Email Anda sudah diverifikasi sebelumnya. Anda dapat login ke akun Anda.";
+                $status = "Akun Anda sudah diverifikasi sebelumnya. Anda dapat login ke akun Anda.";
                 $success = true;
             }
         } else {
@@ -267,19 +287,82 @@ class AuthController extends Controller
             'redirect' => $success ? url('/login') : null
         ]);
     }
-
-    public function resendVerification(Request $request)
+    
+    /**
+     * Verifikasi akun menggunakan kode OTP
+     */
+    public function verifyOTP(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|exists:users,email'
+            'otp_code' => 'required|string|size:6',
+            'no_hp' => 'required|string'
         ]);
-
-        $user = User::where('email', $request->email)->first();
+        
+        $user = User::where('no_hp', $request->no_hp)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nomor HP tidak ditemukan.'
+            ], 404);
+        }
         
         if ($user->verified) {
             return response()->json([
                 'success' => false,
-                'message' => 'Email sudah terverifikasi'
+                'message' => 'Akun sudah terverifikasi sebelumnya.'
+            ], 400);
+        }
+        
+        $verifyUser = verify_user::where('user_id', $user->id)
+            ->where('otp_code', $request->otp_code)
+            ->first();
+        
+        if (!$verifyUser) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kode OTP tidak valid.'
+            ], 400);
+        }
+        
+        if ($verifyUser->isExpired()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kode OTP telah kedaluwarsa. Silakan minta kode baru.'
+            ], 400);
+        }
+        
+        // Verifikasi berhasil
+        $user->verified = true;
+        $user->save();
+        
+        // Hapus token
+        verify_user::where('user_id', $user->id)->delete();
+        
+        // Hapus session verify_no_hp setelah verifikasi berhasil
+        session()->forget('verify_no_hp');
+        
+        Log::info('User verified via OTP', ['user_id' => $user->id, 'no_hp' => $user->no_hp]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Akun Anda telah berhasil diverifikasi! Silakan login.',
+            'redirect' => url('/login')
+        ]);
+    }
+
+    public function resendVerification(Request $request)
+    {
+        $request->validate([
+            'no_hp' => 'required|string|exists:users,no_hp'
+        ]);
+
+        $user = User::where('no_hp', $request->no_hp)->first();
+        
+        if ($user->verified) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akun sudah terverifikasi'
             ], 400);
         }
 
@@ -295,29 +378,41 @@ class AuthController extends Controller
                 'token' => $verifyUser->token
             ]);
 
-            // Kirim ulang email verifikasi
-            Mail::to($user->email)->send(new VerifyMail($user, $verifyUser->token));
+            // Kirim ulang WhatsApp verifikasi dengan OTP
+            $whatsappService = new WhatsAppService();
+            
+            // Format pesan dengan kode OTP
+            $message = "*SILUK - Verifikasi Akun*\n\n";
+            $message .= "Halo *{$user->name}*,\n\n";
+            $message .= "Kode verifikasi baru Anda adalah:\n\n";
+            $message .= "*{$verifyUser->otp_code}*\n\n";
+            $message .= "Masukkan kode di atas pada halaman verifikasi.\n\n";
+            $message .= "_Kode berlaku selama 24 jam_\n\n";
+            $message .= "Terima kasih! \ud83d\ude4f";
+            
+            $response = $whatsappService->sendMessage($user->no_hp, $message);
 
-            Log::info('Verification email resent successfully', [
+            Log::info('Verification WhatsApp resent successfully', [
                 'user_id' => $user->id, 
-                'email' => $user->email
+                'no_hp' => $user->no_hp,
+                'response' => $response
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Email verifikasi telah dikirim ulang. Silakan cek kotak masuk Anda.'
+                'message' => 'Link verifikasi telah dikirim ulang ke WhatsApp Anda. Silakan cek pesan masuk.'
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Failed to resend verification email: ' . $e->getMessage(), [
+            Log::error('Failed to resend verification WhatsApp: ' . $e->getMessage(), [
                 'user_id' => $user->id,
-                'email' => $user->email,
+                'no_hp' => $user->no_hp,
                 'trace' => $e->getTraceAsString()
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat mengirim email verifikasi. Silakan coba lagi.'
+                'message' => 'Terjadi kesalahan saat mengirim pesan verifikasi. Silakan coba lagi.'
             ], 500);
         }
     }

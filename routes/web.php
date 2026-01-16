@@ -20,8 +20,14 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('register', [AuthController::class, 'register'])->name('register');
 Route::post('register', [AuthController::class, 'postRegister'])->name('postRegister');
 
-// Email verification routes
+// WhatsApp verification routes
 Route::get('verify/{token}', [AuthController::class, 'verify'])->name('verify');
+Route::get('verify-otp', function () {
+    $noHp = session('verify_no_hp', '');
+    // JANGAN hapus session di sini, biarkan sampai verifikasi berhasil
+    return inertia('VerifyOTPPage', ['noHp' => $noHp]);
+})->name('verify.otp.page');
+Route::post('verify-otp', [AuthController::class, 'verifyOTP'])->name('verify.otp');
 Route::get('resend-verification', function () {
     return inertia('ResendVerificationPage');
 })->name('resend.verification.page');

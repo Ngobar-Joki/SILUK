@@ -104,12 +104,12 @@ const ResendVerificationPage: React.FC = () => {
                         </div>
                         <h1 className="resend-title">
                             <span className="title-gradient">
-                                Verifikasi Email
+                                Verifikasi WhatsApp
                             </span>
                         </h1>
                         <p className="resend-subtitle">
-                            Kirim ulang email verifikasi untuk mengaktifkan akun
-                            Anda
+                            Kirim ulang link verifikasi ke WhatsApp untuk
+                            mengaktifkan akun Anda
                         </p>
                     </div>
 
