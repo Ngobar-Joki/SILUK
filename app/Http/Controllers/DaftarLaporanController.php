@@ -33,7 +33,7 @@ class DaftarLaporanController extends Controller
     public function fetchedDaftarLaporan(Request $request)
     {
         try {
-            $laporans = LaporanBulanan::with('user')
+            $laporans = LaporanBulanan::with(['user', 'verifiedByOperator', 'verifiedByKepala'])
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -54,19 +54,59 @@ class DaftarLaporanController extends Controller
     {
         try {
             $laporan = LaporanBulanan::with('user')->findOrFail($id);
-            $laporan->status = 'accepted';
+            $user = Auth::user();
             
-            $laporan->save();
-
-            // Kirim notifikasi WhatsApp jika nomor tersedia
-            $user = $laporan->user;
-            if ($user && $user->no_hp && substr($user->no_hp, 0, 2) == '08') {
-                $message = "Halo {$user->name},\n\n"
+            // Verifikasi bertahap berdasarkan role
+            if ($user->role === 'operator') {
+                // Operator verifikasi tahap 1
+                if ($laporan->status !== 'pending') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Laporan sudah diverifikasi sebelumnya'
+                    ], 400);
+                }
+                
+                $laporan->status = 'verified_by_operator';
+                $laporan->verified_by_operator_id = Auth::id();
+                $laporan->operator_verified_at = now();
+                $laporan->save();
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Laporan berhasil diverifikasi operator. Menunggu verifikasi kepala.',
+                    'data' => $laporan
+                ]);
+                
+            } elseif ($user->role === 'kepala') {
+                // Kepala verifikasi tahap 2 (final)
+                if ($laporan->status !== 'verified_by_operator') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Laporan harus diverifikasi operator terlebih dahulu'
+                    ], 400);
+                }
+                
+                $laporan->status = 'accepted';
+                $laporan->verified_by_kepala_id = Auth::id();
+                $laporan->kepala_verified_at = now();
+                $laporan->save();
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses untuk verifikasi'
+                ], 403);
+            }
+            
+            // Kirim notifikasi WhatsApp hanya jika sudah disetujui final (kepala)
+            if ($laporan->status === 'accepted') {
+                $userData = $laporan->user;
+                if ($userData && $userData->no_hp && substr($userData->no_hp, 0, 2) == '08') {
+                $message = "Halo {$userData->name},\n\n"
                     . "Laporan bulanan Anda telah diverifikasi dan diterima.\n"
                     . "Silakan dicek pada halaman laporan pada website SILUK. Untuk detail lebih lanjut, dimohon menghubungi admin.\n\n"
                     . "Terima kasih,\n"
                     . "Admin SILUK.\n";
-                $no_hp = '62' . substr($user->no_hp, 1);
+                $no_hp = '62' . substr($userData->no_hp, 1);
                 
                 // Add random delay between 5-10 seconds
                 $delay = rand(3, 5);
@@ -81,16 +121,17 @@ class DaftarLaporanController extends Controller
                 
                 Log::info('WhatsApp notification sent for approved laporan', [
                     'laporan_id' => $id,
-                    'user_id' => $user->id,
+                    'user_id' => $userData->id,
                     'phone' => $no_hp,
                     'delay_applied' => $delay,
                     'whatsapp_response' => $whatsappResult
                 ]);
             }
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Laporan berhasil diverifikasi.',
+                'message' => 'Laporan berhasil diverifikasi dan disetujui.',
                 'data' => $laporan
             ]);
         } catch (\Exception $e) {
@@ -109,20 +150,40 @@ class DaftarLaporanController extends Controller
     {
         try {
             $laporan = LaporanBulanan::with('user')->findOrFail($id);
+            $user = Auth::user();
+            
+            // Validasi: hanya pending dan verified_by_operator yang bisa ditolak
+            if (!in_array($laporan->status, ['pending', 'verified_by_operator'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Laporan tidak dapat ditolak'
+                ], 400);
+            }
+            
             $laporan->status = 'rejected';
             $laporan->catatan = $request->catatan;
+            
+            // Simpan siapa yang menolak
+            if ($user->role === 'operator') {
+                $laporan->verified_by_operator_id = Auth::id();
+                $laporan->operator_verified_at = now();
+            } elseif ($user->role === 'kepala') {
+                $laporan->verified_by_kepala_id = Auth::id();
+                $laporan->kepala_verified_at = now();
+            }
+            
             $laporan->save();
 
             // Kirim notifikasi WhatsApp jika nomor tersedia
-            $user = $laporan->user;
-            if ($user && $user->no_hp && substr($user->no_hp, 0, 2) == '08') {
-                $message = "Halo {$user->name},\n\n"
+            $userData = $laporan->user;
+            if ($userData && $userData->no_hp && substr($userData->no_hp, 0, 2) == '08') {
+                $message = "Halo {$userData->name},\n\n"
                     . "Laporan bulanan Anda telah ditolak.\n"
                     . "Alasan: {$laporan->catatan}\n\n"
                     . "Silakan dicek pada halaman laporan pada website SILUK. Untuk detail lebih lanjut, dimohon menghubungi admin.\n\n"
                     . "Terima kasih,\n"
                     . "Admin SILUK.\n";
-                $no_hp = '62' . substr($user->no_hp, 1);
+                $no_hp = '62' . substr($userData->no_hp, 1);
                 
                 // Add random delay between 5-10 seconds
                 $delay = rand(3, 5);
@@ -137,7 +198,7 @@ class DaftarLaporanController extends Controller
                 
                 Log::info('WhatsApp notification sent for rejected laporan', [
                     'laporan_id' => $id,
-                    'user_id' => $user->id,
+                    'user_id' => $userData->id,
                     'phone' => $no_hp,
                     'catatan' => $laporan->catatan,
                     'delay_applied' => $delay,

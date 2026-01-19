@@ -10,7 +10,6 @@ import {
     Building,
     Target,
     Newspaper,
-    
 } from "lucide-react";
 import "../../../css/Sidebar.css";
 
@@ -45,9 +44,11 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-    const [user, setUser] = useState<{ name: string; email: string } | null>(
-        null
-    );
+    const [user, setUser] = useState<{
+        name: string;
+        email: string;
+        role?: string;
+    } | null>(null);
     const location = useLocation();
 
     const menuItems: MenuItem[] = [
@@ -76,31 +77,35 @@ const Sidebar: React.FC<SidebarProps> = ({
             label: "Management",
             icon: <Building size={20} />,
             submenu: [
+                ...(user?.role === "operator"
+                    ? [
+                          {
+                              id: "users",
+                              label: "Users",
+                              icon: <Users size={18} />,
+                              href: "/daftar-user",
+                          },
+                          {
+                              id: "visimisi",
+                              label: "Visi Misi",
+                              icon: <Target size={18} />,
+                              href: "/visi-misi",
+                          },
+                          {
+                              id: "strukturOrganisasi",
+                              label: "Struktur Organisasi",
+                              icon: <Building size={18} />,
+                              href: "/struktur-organisasi",
+                          },
+                          {
+                              id: "berita",
+                              label: "Berita",
+                              icon: <Newspaper size={18} />,
+                              href: "/berita",
+                          },
+                      ]
+                    : []),
                 {
-                    id: "users",
-                    label: "Users",
-                    icon: <Users size={18} />,
-                    href: "/daftar-user",
-                },
-                {
-                    id: "visimisi",
-                    label: "Visi Misi",
-                    icon: <Target size={18} />,
-                    href: "/visi-misi",
-                },
-                {
-                    id: "strukturOrganisasi",
-                    label: "Struktur Organisasi",
-                    icon: <Building size={18} />,
-                    href: "/struktur-organisasi",
-                },
-                {
-                    id: "berita",
-                    label: "Berita",
-                    icon: <Newspaper size={18} />,
-                    href: "/berita",
-                },
-                 {
                     id: "profile",
                     label: "Profile",
                     icon: <Users size={20} />,
@@ -108,7 +113,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                 },
             ],
         },
-       
     ];
 
     useEffect(() => {
@@ -129,6 +133,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     setUser({
                         name: data.user.name,
                         email: data.user.email,
+                        role: data.user.role,
                     });
                 }
             })

@@ -32,7 +32,7 @@ class DaftarPermohonanController extends Controller
     public function fetchedDaftarPermohonan(Request $request)
     {
         try {
-            $permohonans = Permohonan::with('user')
+            $permohonans = Permohonan::with(['user', 'verifiedByOperator', 'verifiedByKepala'])
                 ->orderBy('created_at', 'desc')
                 ->get();
 
@@ -53,28 +53,59 @@ class DaftarPermohonanController extends Controller
     {
         try {
             $permohonan = Permohonan::with('user')->findOrFail($id);
-            $permohonan->status = 'accepted';
+            $user = Auth::user();
             
-            // Jika ada kolom verifikator, simpan user yang memverifikasi
-            if (Schema::hasColumn('permohonans', 'id_operator') && Schema::hasColumn('permohonans', 'id_admin_verifikasi')) {
-                $user = Auth::user();
-                if ($user->role === 'operator') {
-                    $permohonan->id_operator = Auth::id();
-                } else {
-                    $permohonan->id_admin_verifikasi = Auth::id();
+            // Verifikasi bertahap berdasarkan role
+            if ($user->role === 'operator') {
+                // Operator verifikasi tahap 1
+                if ($permohonan->status !== 'pending') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Permohonan sudah diverifikasi sebelumnya'
+                    ], 400);
                 }
+                
+                $permohonan->status = 'verified_by_operator';
+                $permohonan->verified_by_operator_id = Auth::id();
+                $permohonan->operator_verified_at = now();
+                $permohonan->save();
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Permohonan berhasil diverifikasi operator. Menunggu verifikasi kepala.',
+                    'data' => $permohonan
+                ]);
+                
+            } elseif ($user->role === 'kepala') {
+                // Kepala verifikasi tahap 2 (final)
+                if ($permohonan->status !== 'verified_by_operator') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Permohonan harus diverifikasi operator terlebih dahulu'
+                    ], 400);
+                }
+                
+                $permohonan->status = 'accepted';
+                $permohonan->verified_by_kepala_id = Auth::id();
+                $permohonan->kepala_verified_at = now();
+                $permohonan->save();
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses untuk verifikasi'
+                ], 403);
             }
-            $permohonan->save();
-
-            // Kirim notifikasi WhatsApp jika nomor tersedia
-            $user = $permohonan->user;
-            if ($user && $user->no_hp && substr($user->no_hp, 0, 2) == '08') {
-                $message = "Halo {$user->name},\n\n"
-                    . "Permohonan koperasi Anda telah diverifikasi dan diterima.\n"
-                    . "Silakan dicek pada halaman pengajuan pada website SILUK. Untuk detail lebih lanjut, dimohon menghubungi admin.\n\n"
-                    . "Terima kasih,\n"
-                    . "Admin SILUK.\n";
-                $no_hp = '62' . substr($user->no_hp, 1);
+            
+            // Kirim notifikasi WhatsApp hanya jika sudah disetujui final (kepala)
+            if ($permohonan->status === 'accepted') {
+                $userData = $permohonan->user;
+                if ($userData && $userData->no_hp && substr($userData->no_hp, 0, 2) == '08') {
+                    $message = "Halo {$userData->name},\n\n"
+                        . "Permohonan koperasi Anda telah diverifikasi dan diterima.\n"
+                        . "Silakan dicek pada halaman pengajuan pada website SILUK. Untuk detail lebih lanjut, dimohon menghubungi admin.\n\n"
+                        . "Terima kasih,\n"
+                        . "Admin SILUK.\n";
+                    $no_hp = '62' . substr($userData->no_hp, 1);
                 
                 // Add random delay between 5-10 seconds
                 $delay = rand(3, 5);
@@ -89,16 +120,17 @@ class DaftarPermohonanController extends Controller
                 
                 Log::info('WhatsApp notification sent for approved permohonan', [
                     'permohonan_id' => $id,
-                    'user_id' => $user->id,
+                    'user_id' => $userData->id,
                     'phone' => $no_hp,
                     'delay_applied' => $delay,
                     'whatsapp_response' => $whatsappResult
                 ]);
+                }
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Permohonan berhasil diverifikasi.',
+                'message' => 'Permohonan berhasil diverifikasi dan disetujui.',
                 'data' => $permohonan
             ]);
         } catch (\Exception $e) {
@@ -117,31 +149,40 @@ class DaftarPermohonanController extends Controller
     {
         try {
             $permohonan = Permohonan::with('user')->findOrFail($id);
-            $permohonan->status = 'rejected';
+            $user = Auth::user();
             
-            // Jika ada kolom verifikator, simpan user yang memverifikasi
-            if (Schema::hasColumn('permohonans', 'id_operator') && Schema::hasColumn('permohonans', 'id_admin_verifikasi')) {
-                $user = Auth::user();
-                if ($user->role === 'operator') {
-                    $permohonan->id_operator = Auth::id();
-                } else {
-                    $permohonan->id_admin_verifikasi = Auth::id();
-                }
+            // Validasi: hanya pending dan verified_by_operator yang bisa ditolak
+            if (!in_array($permohonan->status, ['pending', 'verified_by_operator'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Permohonan tidak dapat ditolak'
+                ], 400);
             }
             
+            $permohonan->status = 'rejected';
             $permohonan->catatan = $request->catatan;
+            
+            // Simpan siapa yang menolak
+            if ($user->role === 'operator') {
+                $permohonan->verified_by_operator_id = Auth::id();
+                $permohonan->operator_verified_at = now();
+            } elseif ($user->role === 'kepala') {
+                $permohonan->verified_by_kepala_id = Auth::id();
+                $permohonan->kepala_verified_at = now();
+            }
+            
             $permohonan->save();
 
             // Kirim notifikasi WhatsApp jika nomor tersedia
-            $user = $permohonan->user;
-            if ($user && $user->no_hp && substr($user->no_hp, 0, 2) == '08') {
-                $message = "Halo {$user->name},\n\n"
+            $userData = $permohonan->user;
+            if ($userData && $userData->no_hp && substr($userData->no_hp, 0, 2) == '08') {
+                $message = "Halo {$userData->name},\n\n"
                     . "Permohonan koperasi Anda telah ditolak.\n"
                     . "Alasan: {$permohonan->catatan}\n\n"
                     . "Silakan dicek pada halaman pengajuan pada website SILUK. Untuk detail lebih lanjut, dimohon menghubungi admin.\n\n"
                     . "Terima kasih,\n"
                     . "Admin SILUK.\n";
-                $no_hp = '62' . substr($user->no_hp, 1);
+                $no_hp = '62' . substr($userData->no_hp, 1);
                 
                 // Add random delay between 5-10 seconds
                 $delay = rand(3, 5);
@@ -156,7 +197,7 @@ class DaftarPermohonanController extends Controller
                 
                 Log::info('WhatsApp notification sent for rejected permohonan', [
                     'permohonan_id' => $id,
-                    'user_id' => $user->id,
+                    'user_id' => $userData->id,
                     'phone' => $no_hp,
                     'catatan' => $permohonan->catatan,
                     'delay_applied' => $delay,

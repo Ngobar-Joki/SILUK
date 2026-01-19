@@ -25,6 +25,19 @@ interface Permohonan {
     updated_at: string;
     status?: string;
     catatan?: string;
+    // Field verifikasi
+    verified_by_operator_id?: number;
+    operator_verified_at?: string;
+    verified_by_kepala_id?: number;
+    kepala_verified_at?: string;
+    verified_by_operator?: {
+        id: number;
+        name: string;
+    };
+    verified_by_kepala?: {
+        id: number;
+        name: string;
+    };
     // Tambahkan field pdf untuk setiap dokumen
     susunan_penggurus?: string;
     surat_nonpengurus?: string;
@@ -39,7 +52,7 @@ const DaftarPermohonan: React.FC = () => {
     const [error, setError] = useState<string>("");
     // State untuk active tab
     const [activeTab, setActiveTab] = useState<
-        "pending" | "accepted" | "rejected"
+        "pending" | "verified_by_operator" | "accepted" | "rejected"
     >("pending");
     // State untuk modal verifikasi
     const [showModal, setShowModal] = useState<boolean>(false);
@@ -65,6 +78,23 @@ const DaftarPermohonan: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [pageSize] = useState<number>(5);
     const [totalPages, setTotalPages] = useState<number>(1);
+    // State untuk user role
+    const [userRole, setUserRole] = useState<string>("");
+
+    const fetchUserData = async () => {
+        try {
+            const response = await axios.get("/api/user");
+            console.log("Full response:", response);
+            console.log("Response data:", response.data);
+            if (response.data && response.data.user) {
+                console.log("User object:", response.data.user);
+                console.log("User role:", response.data.user.role);
+                setUserRole(response.data.user.role);
+            }
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+        }
+    };
 
     const fetchedPermohonans = async () => {
         try {
@@ -88,6 +118,7 @@ const DaftarPermohonan: React.FC = () => {
     };
 
     useEffect(() => {
+        fetchUserData();
         fetchedPermohonans();
     }, []);
 
@@ -125,6 +156,10 @@ const DaftarPermohonan: React.FC = () => {
                 return permohonans.filter(
                     (p) => !p.status || p.status === "pending"
                 );
+            case "verified_by_operator":
+                return permohonans.filter(
+                    (p) => p.status === "verified_by_operator"
+                );
             case "accepted":
                 return permohonans.filter((p) => p.status === "accepted");
             case "rejected":
@@ -139,6 +174,9 @@ const DaftarPermohonan: React.FC = () => {
         const pending = permohonans.filter(
             (p) => !p.status || p.status === "pending"
         ).length;
+        const verifiedByOperator = permohonans.filter(
+            (p) => p.status === "verified_by_operator"
+        ).length;
         const accepted = permohonans.filter(
             (p) => p.status === "accepted"
         ).length;
@@ -146,14 +184,16 @@ const DaftarPermohonan: React.FC = () => {
             (p) => p.status === "rejected"
         ).length;
 
-        return { pending, accepted, rejected };
+        return { pending, verifiedByOperator, accepted, rejected };
     };
 
     const statusCounts = getStatusCounts();
     const filteredPermohonans = getFilteredPermohonans();
 
     // Fungsi untuk handle perubahan tab dengan smooth transition
-    const handleTabChange = (tab: "pending" | "accepted" | "rejected") => {
+    const handleTabChange = (
+        tab: "pending" | "verified_by_operator" | "accepted" | "rejected"
+    ) => {
         setActiveTab(tab);
         // Smooth scroll ke atas ketika tab berubah
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -472,10 +512,13 @@ const DaftarPermohonan: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Tombol Disetujui dan Ditolak - hanya muncul untuk status pending */}
-                                {(!selectedPermohonan?.status ||
-                                    selectedPermohonan?.status ===
-                                        "pending") && (
+                                {/* Tombol Disetujui dan Ditolak - hanya muncul untuk status pending (operator) atau verified_by_operator (kepala) */}
+                                {((!selectedPermohonan?.status ||
+                                    selectedPermohonan?.status === "pending") &&
+                                    userRole === "operator") ||
+                                (selectedPermohonan?.status ===
+                                    "verified_by_operator" &&
+                                    userRole === "kepala") ? (
                                     <div className="flex gap-4 justify-end">
                                         <button
                                             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -484,7 +527,10 @@ const DaftarPermohonan: React.FC = () => {
                                         >
                                             {isProcessing
                                                 ? "Memproses..."
-                                                : "Disetujui"}
+                                                : selectedPermohonan?.status ===
+                                                  "verified_by_operator"
+                                                ? "Setujui (Kepala)"
+                                                : "Verifikasi (Operator)"}
                                         </button>
                                         <button
                                             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -494,20 +540,72 @@ const DaftarPermohonan: React.FC = () => {
                                             Ditolak
                                         </button>
                                     </div>
-                                )}
+                                ) : null}
 
                                 {/* Tampilkan status jika sudah diverifikasi */}
+                                {selectedPermohonan?.status ===
+                                    "verified_by_operator" && (
+                                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <p className="text-blue-700 font-medium">
+                                            🔍 Permohonan telah diverifikasi
+                                            operator
+                                        </p>
+                                        <p className="text-blue-600 text-sm mt-1">
+                                            Diverifikasi oleh:{" "}
+                                            {selectedPermohonan
+                                                .verified_by_operator?.name ||
+                                                "Operator"}
+                                        </p>
+                                        <p className="text-blue-600 text-sm mt-1">
+                                            Pada:{" "}
+                                            {selectedPermohonan.operator_verified_at
+                                                ? formatDate(
+                                                      selectedPermohonan.operator_verified_at
+                                                  )
+                                                : "-"}
+                                        </p>
+                                        <p className="text-blue-800 text-sm mt-2 font-medium">
+                                            ⏳ Menunggu verifikasi kepala
+                                        </p>
+                                    </div>
+                                )}
+
                                 {selectedPermohonan?.status === "accepted" && (
                                     <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                                         <p className="text-green-700 font-medium">
                                             ✅ Permohonan telah disetujui
                                         </p>
-                                        <p className="text-green-600 text-sm mt-1">
-                                            Disetujui pada:{" "}
-                                            {formatDate(
-                                                selectedPermohonan.updated_at
-                                            )}
-                                        </p>
+                                        {selectedPermohonan.verified_by_operator && (
+                                            <p className="text-green-600 text-sm mt-1">
+                                                Diverifikasi operator oleh:{" "}
+                                                {
+                                                    selectedPermohonan
+                                                        .verified_by_operator
+                                                        .name
+                                                }{" "}
+                                                pada{" "}
+                                                {selectedPermohonan.operator_verified_at
+                                                    ? formatDate(
+                                                          selectedPermohonan.operator_verified_at
+                                                      )
+                                                    : "-"}
+                                            </p>
+                                        )}
+                                        {selectedPermohonan.verified_by_kepala && (
+                                            <p className="text-green-600 text-sm mt-1">
+                                                Disetujui kepala oleh:{" "}
+                                                {
+                                                    selectedPermohonan
+                                                        .verified_by_kepala.name
+                                                }{" "}
+                                                pada{" "}
+                                                {selectedPermohonan.kepala_verified_at
+                                                    ? formatDate(
+                                                          selectedPermohonan.kepala_verified_at
+                                                      )
+                                                    : "-"}
+                                            </p>
+                                        )}
                                     </div>
                                 )}
 
@@ -759,6 +857,24 @@ const DaftarPermohonan: React.FC = () => {
                                 </div>
                             </button>
                             <button
+                                onClick={() =>
+                                    handleTabChange("verified_by_operator")
+                                }
+                                className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                                    activeTab === "verified_by_operator"
+                                        ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg transform scale-105"
+                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                }`}
+                            >
+                                <div className="flex items-center justify-center gap-2">
+                                    <CheckCircle className="w-4 h-4" />
+                                    <span>Verif Operator</span>
+                                    <span className="bg-white/20 text-xs px-2 py-1 rounded-full">
+                                        {statusCounts.verifiedByOperator}
+                                    </span>
+                                </div>
+                            </button>
+                            <button
                                 onClick={() => handleTabChange("accepted")}
                                 className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
                                     activeTab === "accepted"
@@ -878,15 +994,21 @@ const DaftarPermohonan: React.FC = () => {
                                                                         : permohonan.status ===
                                                                           "rejected"
                                                                         ? "bg-red-100 text-red-700 border border-red-200"
+                                                                        : permohonan.status ===
+                                                                          "verified_by_operator"
+                                                                        ? "bg-blue-100 text-blue-700 border border-blue-200"
                                                                         : "bg-yellow-100 text-yellow-700 border border-yellow-200"
                                                                 }`}
                                                             >
                                                                 {permohonan.status ===
                                                                 "accepted"
-                                                                    ? "✅ Disetujui"
+                                                                    ? "✅ Disetujui Kepala"
                                                                     : permohonan.status ===
                                                                       "rejected"
                                                                     ? "❌ Ditolak"
+                                                                    : permohonan.status ===
+                                                                      "verified_by_operator"
+                                                                    ? "🔍 Verif Operator"
                                                                     : "⏳ Pending"}
                                                             </span>
                                                         </div>
@@ -1048,6 +1170,37 @@ const DaftarPermohonan: React.FC = () => {
 
                                                         {/* Tambahkan informasi khusus berdasarkan status */}
                                                         {permohonan.status ===
+                                                            "verified_by_operator" && (
+                                                            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                                                <p className="text-blue-700 text-sm font-medium">
+                                                                    🔍 Telah
+                                                                    diverifikasi
+                                                                    operator
+                                                                </p>
+                                                                <p className="text-blue-600 text-xs mt-1">
+                                                                    Oleh:{" "}
+                                                                    {permohonan
+                                                                        .verified_by_operator
+                                                                        ?.name ||
+                                                                        "Operator"}
+                                                                </p>
+                                                                <p className="text-blue-600 text-xs mt-1">
+                                                                    Pada:{" "}
+                                                                    {permohonan.operator_verified_at
+                                                                        ? formatDate(
+                                                                              permohonan.operator_verified_at
+                                                                          )
+                                                                        : "-"}
+                                                                </p>
+                                                                <p className="text-blue-800 text-xs mt-2 font-medium">
+                                                                    ⏳ Menunggu
+                                                                    verifikasi
+                                                                    kepala
+                                                                </p>
+                                                            </div>
+                                                        )}
+
+                                                        {permohonan.status ===
                                                             "accepted" && (
                                                             <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                                                                 <p className="text-green-700 text-sm font-medium">
@@ -1056,13 +1209,23 @@ const DaftarPermohonan: React.FC = () => {
                                                                     telah
                                                                     disetujui
                                                                 </p>
-                                                                <p className="text-green-600 text-xs mt-1">
-                                                                    Disetujui
-                                                                    pada:{" "}
-                                                                    {formatDate(
-                                                                        permohonan.updated_at
-                                                                    )}
-                                                                </p>
+                                                                {permohonan.verified_by_kepala && (
+                                                                    <p className="text-green-600 text-xs mt-1">
+                                                                        Disetujui
+                                                                        oleh:{" "}
+                                                                        {
+                                                                            permohonan
+                                                                                .verified_by_kepala
+                                                                                .name
+                                                                        }{" "}
+                                                                        pada{" "}
+                                                                        {permohonan.kepala_verified_at
+                                                                            ? formatDate(
+                                                                                  permohonan.kepala_verified_at
+                                                                              )
+                                                                            : "-"}
+                                                                    </p>
+                                                                )}
                                                             </div>
                                                         )}
 
@@ -1112,6 +1275,58 @@ const DaftarPermohonan: React.FC = () => {
                                                             </button>
                                                         )}
 
+                                                        {/* Untuk status verified_by_operator, tampilkan tombol verifikasi kepala hanya untuk role kepala */}
+                                                        {(() => {
+                                                            const shouldShowButton =
+                                                                permohonan.status ===
+                                                                    "verified_by_operator" &&
+                                                                userRole ===
+                                                                    "kepala";
+                                                            console.log(
+                                                                "Check verifikasi kepala:",
+                                                                {
+                                                                    permohonanId:
+                                                                        permohonan.id,
+                                                                    status: permohonan.status,
+                                                                    userRole:
+                                                                        userRole,
+                                                                    shouldShowButton,
+                                                                }
+                                                            );
+                                                            return shouldShowButton ? (
+                                                                <button
+                                                                    className="w-full md:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 flex items-center justify-center gap-2 font-medium"
+                                                                    onClick={() =>
+                                                                        handleVerifikasi(
+                                                                            permohonan
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <CheckCircle className="w-4 h-4" />
+                                                                    Verifikasi
+                                                                    Kepala
+                                                                </button>
+                                                            ) : null;
+                                                        })()}
+
+                                                        {/* Untuk status verified_by_operator dan role operator, tampilkan tombol lihat detail */}
+                                                        {permohonan.status ===
+                                                            "verified_by_operator" &&
+                                                            userRole ===
+                                                                "operator" && (
+                                                                <button
+                                                                    className="w-full md:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center gap-2 font-medium"
+                                                                    onClick={() =>
+                                                                        handleVerifikasi(
+                                                                            permohonan
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <Eye className="w-4 h-4" />
+                                                                    Lihat Detail
+                                                                </button>
+                                                            )}
+
                                                         {/* Untuk status accepted, tampilkan tombol lihat detail */}
                                                         {permohonan.status ===
                                                             "accepted" && (
@@ -1158,6 +1373,9 @@ const DaftarPermohonan: React.FC = () => {
                                     <h3 className="text-2xl font-bold text-gray-800 mb-2">
                                         {activeTab === "pending"
                                             ? "Belum ada permohonan pending"
+                                            : activeTab ===
+                                              "verified_by_operator"
+                                            ? "Belum ada permohonan yang diverifikasi operator"
                                             : activeTab === "accepted"
                                             ? "Belum ada permohonan yang disetujui"
                                             : "Belum ada permohonan yang ditolak"}
@@ -1165,6 +1383,9 @@ const DaftarPermohonan: React.FC = () => {
                                     <p className="text-gray-600 text-lg">
                                         {activeTab === "pending"
                                             ? "Permohonan pending belum tersedia."
+                                            : activeTab ===
+                                              "verified_by_operator"
+                                            ? "Permohonan yang telah diverifikasi operator belum tersedia."
                                             : activeTab === "accepted"
                                             ? "Permohonan yang disetujui belum tersedia."
                                             : "Permohonan yang ditolak belum tersedia."}
