@@ -19,8 +19,16 @@ return new class extends Migration
             $table->string('bukti_modal');
             $table->string('ktp');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->enum('status', ['pending', 'accepted', 'rejected'])->default('pending');
+            $table->enum('status', ['pending', 'verified_by_operator', 'accepted', 'rejected'])->default('pending');
             $table->text('catatan')->nullable();
+            
+            // Kolom verifikasi operator
+            $table->foreignId('verified_by_operator_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamp('operator_verified_at')->nullable();
+            
+            // Kolom verifikasi kepala
+            $table->foreignId('verified_by_kepala_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamp('kepala_verified_at')->nullable();
                
             $table->timestamps();
         });

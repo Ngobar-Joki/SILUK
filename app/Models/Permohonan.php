@@ -15,6 +15,10 @@ class Permohonan extends Model
         'user_id',
         'status',
         'catatan',
+        'verified_by_operator_id',
+        'operator_verified_at',
+        'verified_by_kepala_id',
+        'kepala_verified_at',
     ];
 
     public $timestamps = true;
@@ -24,13 +28,13 @@ class Permohonan extends Model
         return $this->belongsTo(User::class);
     }
 
-     public function pendaftar()
+    public function verifiedByOperator()
     {
-        return $this->hasMany(verify_user::class, 'id_pendaftar');
+        return $this->belongsTo(User::class, 'verified_by_operator_id');
     }
     
-    public function operator()
+    public function verifiedByKepala()
     {
-        return $this->hasMany(Permohonan::class, 'id_operator');
+        return $this->belongsTo(User::class, 'verified_by_kepala_id');
     }
 }
