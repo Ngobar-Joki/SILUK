@@ -66,6 +66,7 @@ class AuthController extends Controller
             $intended = session('url.intended');
             $redirectUrl = $intended ? $intended : match ($user->role) {
                 'operator' => route('dashboard'),
+                'kepala' => route('dashboard'),
                 'pendaftar' => url('/'),
                 default => url('/'),
             };

@@ -70,7 +70,7 @@ Route::get('/api/berita/public', [App\Http\Controllers\BeritaController::class, 
 Route::middleware(['auth'])->get('/api/notif-navbar', [App\Http\Controllers\NotifNavbarController::class, 'index'])->name('api.notif-navbar');
 Route::middleware(['auth'])->post('/api/notif-navbar/mark-all-read', [App\Http\Controllers\NotifNavbarController::class, 'markAllRead'])->name('api.notif-navbar.markAllRead');
 
-Route::middleware(['auth', 'role:operator'])->group(function () {
+Route::middleware(['auth', 'role:operator,kepala'])->group(function () {
 
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

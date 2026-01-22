@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('alamat')->nullable();
             $table->string('username')->unique();
             $table->string('password');
-            $table->enum('role', [ 'operator', 'pendaftar'])->default('pendaftar');
+            $table->enum('role', [ 'operator', 'pendaftar', 'kepala'])->default('pendaftar');
             $table->boolean('verified')->default(false);
             $table->json('read_notifications')->nullable(); // tambahkan ini
      

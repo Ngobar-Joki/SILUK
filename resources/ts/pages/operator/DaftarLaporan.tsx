@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import Layout from "../../components/layout/Layout";
-import { Users, CheckCircle, XCircle, Clock, FileText, Download, Eye } from "lucide-react";
+import {
+    Users,
+    CheckCircle,
+    XCircle,
+    Clock,
+    FileText,
+    Download,
+    Eye,
+} from "lucide-react";
 import axios from "axios";
 
 interface Laporan {
@@ -17,8 +25,21 @@ interface Laporan {
     updated_at: string;
     status?: string;
     catatan?: string;
-    data_laporan?: string; // Add this field for file path
-    // Add other fields that might be in LaporanBulanan model
+    data_laporan?: string;
+    periode?: string;
+    // Field verifikasi
+    verified_by_operator_id?: number;
+    operator_verified_at?: string;
+    verified_by_kepala_id?: number;
+    kepala_verified_at?: string;
+    verified_by_operator?: {
+        id: number;
+        name: string;
+    };
+    verified_by_kepala?: {
+        id: number;
+        name: string;
+    };
 }
 
 const DaftarLaporan: React.FC = () => {
@@ -27,7 +48,7 @@ const DaftarLaporan: React.FC = () => {
     const [error, setError] = useState<string>("");
     // State untuk active tab
     const [activeTab, setActiveTab] = useState<
-        "pending" | "accepted" | "rejected"
+        "pending" | "verified_by_operator" | "accepted" | "rejected"
     >("pending");
     // State untuk modal verifikasi
     const [showModal, setShowModal] = useState<boolean>(false);
@@ -39,7 +60,9 @@ const DaftarLaporan: React.FC = () => {
     const [fileType, setFileType] = useState<string>("");
     const [fileLoading, setFileLoading] = useState<boolean>(false);
     // Simpan laporan yang sedang diverifikasi untuk aksi
-    const [selectedLaporan, setSelectedLaporan] = useState<Laporan | null>(null);
+    const [selectedLaporan, setSelectedLaporan] = useState<Laporan | null>(
+        null
+    );
     const [isProcessing, setIsProcessing] = useState(false);
     const [notification, setNotification] = useState<{
         type: "success" | "error";
@@ -50,6 +73,19 @@ const DaftarLaporan: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [pageSize] = useState<number>(5);
     const [totalPages, setTotalPages] = useState<number>(1);
+    // State untuk user role
+    const [userRole, setUserRole] = useState<string>("");
+
+    const fetchUserData = async () => {
+        try {
+            const response = await axios.get("/api/user");
+            if (response.data && response.data.user) {
+                setUserRole(response.data.user.role);
+            }
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+        }
+    };
 
     const fetchedLaporans = async () => {
         try {
@@ -73,6 +109,7 @@ const DaftarLaporan: React.FC = () => {
     };
 
     useEffect(() => {
+        fetchUserData();
         fetchedLaporans();
     }, []);
 
@@ -110,6 +147,10 @@ const DaftarLaporan: React.FC = () => {
                 return laporans.filter(
                     (l) => !l.status || l.status === "pending"
                 );
+            case "verified_by_operator":
+                return laporans.filter(
+                    (l) => l.status === "verified_by_operator"
+                );
             case "accepted":
                 return laporans.filter((l) => l.status === "accepted");
             case "rejected":
@@ -124,21 +165,22 @@ const DaftarLaporan: React.FC = () => {
         const pending = laporans.filter(
             (l) => !l.status || l.status === "pending"
         ).length;
-        const accepted = laporans.filter(
-            (l) => l.status === "accepted"
+        const verifiedByOperator = laporans.filter(
+            (l) => l.status === "verified_by_operator"
         ).length;
-        const rejected = laporans.filter(
-            (l) => l.status === "rejected"
-        ).length;
+        const accepted = laporans.filter((l) => l.status === "accepted").length;
+        const rejected = laporans.filter((l) => l.status === "rejected").length;
 
-        return { pending, accepted, rejected };
+        return { pending, verifiedByOperator, accepted, rejected };
     };
 
     const statusCounts = getStatusCounts();
     const filteredLaporans = getFilteredLaporans();
 
     // Fungsi untuk handle perubahan tab dengan smooth transition
-    const handleTabChange = (tab: "pending" | "accepted" | "rejected") => {
+    const handleTabChange = (
+        tab: "pending" | "verified_by_operator" | "accepted" | "rejected"
+    ) => {
         setActiveTab(tab);
         // Smooth scroll ke atas ketika tab berubah
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -269,8 +311,7 @@ const DaftarLaporan: React.FC = () => {
             } else {
                 setNotification({
                     type: "error",
-                    message:
-                        "Gagal menolak laporan: " + response.data.message,
+                    message: "Gagal menolak laporan: " + response.data.message,
                 });
             }
         } catch (error: any) {
@@ -300,17 +341,17 @@ const DaftarLaporan: React.FC = () => {
 
     // Function to get file extension
     const getFileExtension = (filename: string): string => {
-        return filename.split('.').pop()?.toLowerCase() || '';
+        return filename.split(".").pop()?.toLowerCase() || "";
     };
 
     // Function to determine file type
     const getFileType = (filename: string): string => {
         const ext = getFileExtension(filename);
-        if (['pdf'].includes(ext)) return 'pdf';
-        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'image';
-        if (['doc', 'docx'].includes(ext)) return 'document';
-        if (['xls', 'xlsx'].includes(ext)) return 'spreadsheet';
-        return 'other';
+        if (["pdf"].includes(ext)) return "pdf";
+        if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return "image";
+        if (["doc", "docx"].includes(ext)) return "document";
+        if (["xls", "xlsx"].includes(ext)) return "spreadsheet";
+        return "other";
     };
 
     // Function to handle file viewing
@@ -318,7 +359,7 @@ const DaftarLaporan: React.FC = () => {
         if (!laporan.data_laporan) {
             setNotification({
                 type: "error",
-                message: "File laporan tidak tersedia"
+                message: "File laporan tidak tersedia",
             });
             return;
         }
@@ -326,14 +367,14 @@ const DaftarLaporan: React.FC = () => {
         try {
             setFileLoading(true);
             const filePath = `/storage/${laporan.data_laporan}`;
-            
+
             setSelectedFile(filePath);
             setFileType(getFileType(laporan.data_laporan));
             setShowFileModal(true);
         } catch (error) {
             setNotification({
                 type: "error",
-                message: "Gagal memuat file laporan"
+                message: "Gagal memuat file laporan",
             });
         } finally {
             setFileLoading(false);
@@ -345,18 +386,18 @@ const DaftarLaporan: React.FC = () => {
         if (!laporan.data_laporan) {
             setNotification({
                 type: "error",
-                message: "File laporan tidak tersedia"
+                message: "File laporan tidak tersedia",
             });
             return;
         }
 
         const filePath = `/storage/${laporan.data_laporan}`;
-        const fileName = laporan.data_laporan.split('/').pop() || 'laporan';
-        
-        const link = document.createElement('a');
+        const fileName = laporan.data_laporan.split("/").pop() || "laporan";
+
+        const link = document.createElement("a");
         link.href = filePath;
         link.download = fileName;
-        link.target = '_blank';
+        link.target = "_blank";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -440,7 +481,7 @@ const DaftarLaporan: React.FC = () => {
                         <h2 className="text-xl font-bold mb-4">
                             Verifikasi Laporan
                         </h2>
-                        
+
                         {selectedLaporan && (
                             <div className="mb-6">
                                 <div className="bg-gray-50 p-4 rounded-lg mb-4">
@@ -448,24 +489,54 @@ const DaftarLaporan: React.FC = () => {
                                         Detail Laporan
                                     </h3>
                                     <div className="space-y-2 text-sm">
-                                        <p><strong>Nama:</strong> {selectedLaporan.user?.name}</p>
-                                        <p><strong>Email:</strong> {selectedLaporan.user?.email}</p>
-                                        <p><strong>Username:</strong> {selectedLaporan.user?.username}</p>
-                                        <p><strong>No. HP:</strong> {selectedLaporan.user?.no_hp}</p>
-                                        <p><strong>Alamat:</strong> {selectedLaporan.user?.alamat}</p>
-                                        <p><strong>Tanggal:</strong> {formatDate(selectedLaporan.created_at)}</p>
+                                        <p>
+                                            <strong>Nama:</strong>{" "}
+                                            {selectedLaporan.user?.name}
+                                        </p>
+                                        <p>
+                                            <strong>Email:</strong>{" "}
+                                            {selectedLaporan.user?.email}
+                                        </p>
+                                        <p>
+                                            <strong>Username:</strong>{" "}
+                                            {selectedLaporan.user?.username}
+                                        </p>
+                                        <p>
+                                            <strong>No. HP:</strong>{" "}
+                                            {selectedLaporan.user?.no_hp}
+                                        </p>
+                                        <p>
+                                            <strong>Alamat:</strong>{" "}
+                                            {selectedLaporan.user?.alamat}
+                                        </p>
+                                        <p>
+                                            <strong>Tanggal:</strong>{" "}
+                                            {formatDate(
+                                                selectedLaporan.created_at
+                                            )}
+                                        </p>
                                     </div>
                                 </div>
 
-                                {/* Tombol Disetujui dan Ditolak - hanya muncul untuk status pending */}
-                                {(!selectedLaporan?.status || selectedLaporan?.status === "pending") && (
+                                {/* Tombol Disetujui dan Ditolak - hanya muncul untuk status pending (operator) atau verified_by_operator (kepala) */}
+                                {((!selectedLaporan?.status ||
+                                    selectedLaporan?.status === "pending") &&
+                                    userRole === "operator") ||
+                                (selectedLaporan?.status ===
+                                    "verified_by_operator" &&
+                                    userRole === "kepala") ? (
                                     <div className="flex gap-4 justify-end">
                                         <button
                                             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                             onClick={handleSetujui}
                                             disabled={isProcessing}
                                         >
-                                            {isProcessing ? "Memproses..." : "Disetujui"}
+                                            {isProcessing
+                                                ? "Memproses..."
+                                                : selectedLaporan?.status ===
+                                                  "verified_by_operator"
+                                                ? "Setujui (Kepala)"
+                                                : "Verifikasi (Operator)"}
                                         </button>
                                         <button
                                             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -475,17 +546,72 @@ const DaftarLaporan: React.FC = () => {
                                             Ditolak
                                         </button>
                                     </div>
-                                )}
+                                ) : null}
 
                                 {/* Tampilkan status jika sudah diverifikasi */}
+                                {selectedLaporan?.status ===
+                                    "verified_by_operator" && (
+                                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <p className="text-blue-700 font-medium">
+                                            🔍 Laporan telah diverifikasi
+                                            operator
+                                        </p>
+                                        <p className="text-blue-600 text-sm mt-1">
+                                            Diverifikasi oleh:{" "}
+                                            {selectedLaporan
+                                                .verified_by_operator?.name ||
+                                                "Operator"}
+                                        </p>
+                                        <p className="text-blue-600 text-sm mt-1">
+                                            Pada:{" "}
+                                            {selectedLaporan.operator_verified_at
+                                                ? formatDate(
+                                                      selectedLaporan.operator_verified_at
+                                                  )
+                                                : "-"}
+                                        </p>
+                                        <p className="text-blue-800 text-sm mt-2 font-medium">
+                                            ⏳ Menunggu verifikasi kepala
+                                        </p>
+                                    </div>
+                                )}
+
                                 {selectedLaporan?.status === "accepted" && (
                                     <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                                         <p className="text-green-700 font-medium">
                                             ✅ Laporan telah diverifikasi
                                         </p>
-                                        <p className="text-green-600 text-sm mt-1">
-                                            Diverifikasi pada: {formatDate(selectedLaporan.updated_at)}
-                                        </p>
+                                        {selectedLaporan.verified_by_operator && (
+                                            <p className="text-green-600 text-sm mt-1">
+                                                Diverifikasi operator oleh:{" "}
+                                                {
+                                                    selectedLaporan
+                                                        .verified_by_operator
+                                                        .name
+                                                }{" "}
+                                                pada{" "}
+                                                {selectedLaporan.operator_verified_at
+                                                    ? formatDate(
+                                                          selectedLaporan.operator_verified_at
+                                                      )
+                                                    : "-"}
+                                            </p>
+                                        )}
+                                        {selectedLaporan.verified_by_kepala && (
+                                            <p className="text-green-600 text-sm mt-1">
+                                                Disetujui kepala oleh:{" "}
+                                                {
+                                                    selectedLaporan
+                                                        .verified_by_kepala.name
+                                                }{" "}
+                                                pada{" "}
+                                                {selectedLaporan.kepala_verified_at
+                                                    ? formatDate(
+                                                          selectedLaporan.kepala_verified_at
+                                                      )
+                                                    : "-"}
+                                            </p>
+                                        )}
                                     </div>
                                 )}
 
@@ -495,11 +621,15 @@ const DaftarLaporan: React.FC = () => {
                                             ❌ Laporan ditolak
                                         </p>
                                         <p className="text-red-600 text-sm mt-1">
-                                            Ditolak pada: {formatDate(selectedLaporan.updated_at)}
+                                            Ditolak pada:{" "}
+                                            {formatDate(
+                                                selectedLaporan.updated_at
+                                            )}
                                         </p>
                                         {selectedLaporan.catatan && (
                                             <p className="text-red-600 text-sm mt-2">
-                                                <strong>Catatan:</strong> {selectedLaporan.catatan}
+                                                <strong>Catatan:</strong>{" "}
+                                                {selectedLaporan.catatan}
                                             </p>
                                         )}
                                     </div>
@@ -543,7 +673,9 @@ const DaftarLaporan: React.FC = () => {
                                 onClick={handleSubmitCatatan}
                                 disabled={!catatan.trim() || isProcessing}
                             >
-                                {isProcessing ? "Mengirim..." : "Kirim Penolakan"}
+                                {isProcessing
+                                    ? "Mengirim..."
+                                    : "Kirim Penolakan"}
                             </button>
                         </div>
                     </div>
@@ -563,10 +695,13 @@ const DaftarLaporan: React.FC = () => {
                                 {selectedFile && (
                                     <button
                                         onClick={() => {
-                                            const link = document.createElement('a');
+                                            const link =
+                                                document.createElement("a");
                                             link.href = selectedFile;
-                                            link.download = selectedFile.split('/').pop() || 'laporan';
-                                            link.target = '_blank';
+                                            link.download =
+                                                selectedFile.split("/").pop() ||
+                                                "laporan";
+                                            link.target = "_blank";
                                             document.body.appendChild(link);
                                             link.click();
                                             document.body.removeChild(link);
@@ -592,20 +727,22 @@ const DaftarLaporan: React.FC = () => {
                                 <div className="flex items-center justify-center h-64">
                                     <div className="text-center">
                                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                                        <p className="mt-4 text-gray-600">Memuat file...</p>
+                                        <p className="mt-4 text-gray-600">
+                                            Memuat file...
+                                        </p>
                                     </div>
                                 </div>
                             ) : selectedFile ? (
                                 <div className="h-full">
-                                    {fileType === 'pdf' && (
+                                    {fileType === "pdf" && (
                                         <iframe
                                             src={selectedFile}
                                             className="w-full h-96 md:h-[500px] border border-gray-300 rounded-lg"
                                             title="PDF Viewer"
                                         />
                                     )}
-                                    
-                                    {fileType === 'image' && (
+
+                                    {fileType === "image" && (
                                         <div className="flex justify-center">
                                             <img
                                                 src={selectedFile}
@@ -614,8 +751,10 @@ const DaftarLaporan: React.FC = () => {
                                             />
                                         </div>
                                     )}
-                                    
-                                    {(fileType === 'document' || fileType === 'spreadsheet' || fileType === 'other') && (
+
+                                    {(fileType === "document" ||
+                                        fileType === "spreadsheet" ||
+                                        fileType === "other") && (
                                         <div className="text-center py-12">
                                             <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                                                 <FileText className="w-8 h-8 text-gray-600" />
@@ -624,17 +763,29 @@ const DaftarLaporan: React.FC = () => {
                                                 File tidak dapat ditampilkan
                                             </h3>
                                             <p className="text-gray-600 mb-4">
-                                                File ini tidak dapat ditampilkan di browser. Silakan download untuk melihat isinya.
+                                                File ini tidak dapat ditampilkan
+                                                di browser. Silakan download
+                                                untuk melihat isinya.
                                             </p>
                                             <button
                                                 onClick={() => {
-                                                    const link = document.createElement('a');
+                                                    const link =
+                                                        document.createElement(
+                                                            "a"
+                                                        );
                                                     link.href = selectedFile;
-                                                    link.download = selectedFile.split('/').pop() || 'laporan';
-                                                    link.target = '_blank';
-                                                    document.body.appendChild(link);
+                                                    link.download =
+                                                        selectedFile
+                                                            .split("/")
+                                                            .pop() || "laporan";
+                                                    link.target = "_blank";
+                                                    document.body.appendChild(
+                                                        link
+                                                    );
                                                     link.click();
-                                                    document.body.removeChild(link);
+                                                    document.body.removeChild(
+                                                        link
+                                                    );
                                                 }}
                                                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                                             >
@@ -646,7 +797,9 @@ const DaftarLaporan: React.FC = () => {
                                 </div>
                             ) : (
                                 <div className="text-center py-12">
-                                    <p className="text-gray-600">File tidak dapat dimuat</p>
+                                    <p className="text-gray-600">
+                                        File tidak dapat dimuat
+                                    </p>
                                 </div>
                             )}
                         </div>
@@ -705,6 +858,24 @@ const DaftarLaporan: React.FC = () => {
                                     <span>Pending</span>
                                     <span className="bg-white/20 text-xs px-2 py-1 rounded-full">
                                         {statusCounts.pending}
+                                    </span>
+                                </div>
+                            </button>
+                            <button
+                                onClick={() =>
+                                    handleTabChange("verified_by_operator")
+                                }
+                                className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                                    activeTab === "verified_by_operator"
+                                        ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg transform scale-105"
+                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                }`}
+                            >
+                                <div className="flex items-center justify-center gap-2">
+                                    <CheckCircle className="w-4 h-4" />
+                                    <span>Verif Operator</span>
+                                    <span className="bg-white/20 text-xs px-2 py-1 rounded-full">
+                                        {statusCounts.verifiedByOperator}
                                     </span>
                                 </div>
                             </button>
@@ -780,15 +951,19 @@ const DaftarLaporan: React.FC = () => {
                                             key={laporan.id}
                                             className="bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl p-6 md:p-8 mb-8 transform transition-all duration-300 ease-in-out hover:shadow-lg hover:scale-[1.01]"
                                             style={{
-                                                animationDelay: `${index * 50}ms`,
+                                                animationDelay: `${
+                                                    index * 50
+                                                }ms`,
                                             }}
                                         >
                                             <div className="flex flex-col md:flex-row md:items-start gap-4">
                                                 <div
                                                     className={`p-3 rounded-full flex-shrink-0 ${
-                                                        laporan.status === "accepted"
+                                                        laporan.status ===
+                                                        "accepted"
                                                             ? "bg-gradient-to-r from-green-500 to-emerald-500"
-                                                            : laporan.status === "rejected"
+                                                            : laporan.status ===
+                                                              "rejected"
                                                             ? "bg-gradient-to-r from-red-500 to-pink-500"
                                                             : "bg-gradient-to-r from-blue-500 to-purple-500"
                                                     }`}
@@ -804,34 +979,54 @@ const DaftarLaporan: React.FC = () => {
                                                             |
                                                         </span>
                                                         <span className="text-sm text-gray-500">
-                                                            {laporan.user?.email}
+                                                            {
+                                                                laporan.user
+                                                                    ?.email
+                                                            }
                                                         </span>
                                                         {/* Status Badge */}
                                                         <span
                                                             className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                                laporan.status === "accepted"
+                                                                laporan.status ===
+                                                                "accepted"
                                                                     ? "bg-green-100 text-green-700 border border-green-200"
-                                                                    : laporan.status === "rejected"
+                                                                    : laporan.status ===
+                                                                      "rejected"
                                                                     ? "bg-red-100 text-red-700 border border-red-200"
+                                                                    : laporan.status ===
+                                                                      "verified_by_operator"
+                                                                    ? "bg-blue-100 text-blue-700 border border-blue-200"
                                                                     : "bg-yellow-100 text-yellow-700 border border-yellow-200"
                                                             }`}
                                                         >
-                                                            {laporan.status === "accepted"
-                                                                ? "✅ Diverifikasi"
-                                                                : laporan.status === "rejected"
+                                                            {laporan.status ===
+                                                            "accepted"
+                                                                ? "✅ Diverifikasi Kepala"
+                                                                : laporan.status ===
+                                                                  "rejected"
                                                                 ? "❌ Ditolak"
+                                                                : laporan.status ===
+                                                                  "verified_by_operator"
+                                                                ? "🔍 Verif Operator"
                                                                 : "⏳ Pending"}
                                                         </span>
                                                     </div>
                                                     <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
                                                         <span>
-                                                            @{laporan.user?.username}
+                                                            @
+                                                            {
+                                                                laporan.user
+                                                                    ?.username
+                                                            }
                                                         </span>
                                                         <span className="text-xs text-gray-400">
                                                             |
                                                         </span>
                                                         <span>
-                                                            {laporan.user?.no_hp}
+                                                            {
+                                                                laporan.user
+                                                                    ?.no_hp
+                                                            }
                                                         </span>
                                                     </div>
                                                     <div className="mt-2 space-y-1">
@@ -839,13 +1034,18 @@ const DaftarLaporan: React.FC = () => {
                                                             <span className="font-medium">
                                                                 Tanggal Laporan:
                                                             </span>{" "}
-                                                            {formatDate(laporan.created_at)}
+                                                            {formatDate(
+                                                                laporan.created_at
+                                                            )}
                                                         </div>
                                                         <div className="text-gray-500 text-sm">
                                                             <span className="font-medium">
                                                                 Alamat:
                                                             </span>{" "}
-                                                            {laporan.user?.alamat}
+                                                            {
+                                                                laporan.user
+                                                                    ?.alamat
+                                                            }
                                                         </div>
                                                     </div>
 
@@ -855,20 +1055,33 @@ const DaftarLaporan: React.FC = () => {
                                                             <div className="flex items-center gap-2 mb-2">
                                                                 <FileText className="w-4 h-4 text-blue-600" />
                                                                 <span className="text-blue-700 text-sm font-medium">
-                                                                    File Laporan Tersedia
+                                                                    File Laporan
+                                                                    Tersedia
                                                                 </span>
                                                             </div>
                                                             <div className="flex items-center gap-2">
                                                                 <button
-                                                                    onClick={() => handleViewFile(laporan)}
+                                                                    onClick={() =>
+                                                                        handleViewFile(
+                                                                            laporan
+                                                                        )
+                                                                    }
                                                                     className="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors"
-                                                                    disabled={fileLoading}
+                                                                    disabled={
+                                                                        fileLoading
+                                                                    }
                                                                 >
                                                                     <Eye className="w-3 h-3" />
-                                                                    {fileLoading ? "Memuat..." : "Lihat File"}
+                                                                    {fileLoading
+                                                                        ? "Memuat..."
+                                                                        : "Lihat File"}
                                                                 </button>
                                                                 <button
-                                                                    onClick={() => handleDownloadFile(laporan)}
+                                                                    onClick={() =>
+                                                                        handleDownloadFile(
+                                                                            laporan
+                                                                        )
+                                                                    }
                                                                     className="inline-flex items-center gap-1 px-3 py-1 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors"
                                                                 >
                                                                     <Download className="w-3 h-3" />
@@ -879,52 +1092,115 @@ const DaftarLaporan: React.FC = () => {
                                                     )}
 
                                                     {/* Tambahkan informasi khusus berdasarkan status */}
-                                                    {laporan.status === "accepted" && (
+                                                    {laporan.status ===
+                                                        "accepted" && (
                                                         <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                                                             <p className="text-green-700 text-sm font-medium">
-                                                                ✅ Laporan telah diverifikasi
+                                                                ✅ Laporan telah
+                                                                diverifikasi
                                                             </p>
                                                             <p className="text-green-600 text-xs mt-1">
-                                                                Diverifikasi pada:{" "}
-                                                                {formatDate(laporan.updated_at)}
+                                                                Diverifikasi
+                                                                pada:{" "}
+                                                                {formatDate(
+                                                                    laporan.updated_at
+                                                                )}
                                                             </p>
                                                         </div>
                                                     )}
 
-                                                    {laporan.status === "rejected" && laporan.catatan && (
-                                                        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                                            <p className="text-red-700 text-sm font-medium">
-                                                                ❌ Laporan ditolak
-                                                            </p>
-                                                            <p className="text-red-600 text-xs mt-1">
-                                                                Ditolak pada:{" "}
-                                                                {formatDate(laporan.updated_at)}
-                                                            </p>
-                                                            <p className="text-red-600 text-sm mt-2">
-                                                                <strong>Catatan:</strong>{" "}
-                                                                {laporan.catatan}
-                                                            </p>
-                                                        </div>
-                                                    )}
+                                                    {laporan.status ===
+                                                        "rejected" &&
+                                                        laporan.catatan && (
+                                                            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                                                <p className="text-red-700 text-sm font-medium">
+                                                                    ❌ Laporan
+                                                                    ditolak
+                                                                </p>
+                                                                <p className="text-red-600 text-xs mt-1">
+                                                                    Ditolak
+                                                                    pada:{" "}
+                                                                    {formatDate(
+                                                                        laporan.updated_at
+                                                                    )}
+                                                                </p>
+                                                                <p className="text-red-600 text-sm mt-2">
+                                                                    <strong>
+                                                                        Catatan:
+                                                                    </strong>{" "}
+                                                                    {
+                                                                        laporan.catatan
+                                                                    }
+                                                                </p>
+                                                            </div>
+                                                        )}
                                                 </div>
 
                                                 {/* Tombol aksi berdasarkan status */}
                                                 <div className="flex-shrink-0 mt-4 md:mt-0">
-                                                    {(!laporan.status || laporan.status === "pending") && (
+                                                    {(!laporan.status ||
+                                                        laporan.status ===
+                                                            "pending") && (
                                                         <button
                                                             className="w-full md:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center gap-2 font-medium"
-                                                            onClick={() => handleVerifikasi(laporan)}
+                                                            onClick={() =>
+                                                                handleVerifikasi(
+                                                                    laporan
+                                                                )
+                                                            }
                                                         >
                                                             <Clock className="w-4 h-4" />
                                                             Verifikasi
                                                         </button>
                                                     )}
 
+                                                    {/* Untuk status verified_by_operator, tampilkan tombol verifikasi kepala hanya untuk role kepala */}
+                                                    {laporan.status ===
+                                                        "verified_by_operator" &&
+                                                        userRole ===
+                                                            "kepala" && (
+                                                            <button
+                                                                className="w-full md:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 flex items-center justify-center gap-2 font-medium"
+                                                                onClick={() =>
+                                                                    handleVerifikasi(
+                                                                        laporan
+                                                                    )
+                                                                }
+                                                            >
+                                                                <CheckCircle className="w-4 h-4" />
+                                                                Verifikasi
+                                                                Kepala
+                                                            </button>
+                                                        )}
+
+                                                    {/* Untuk status verified_by_operator dan role operator, tampilkan tombol lihat detail */}
+                                                    {laporan.status ===
+                                                        "verified_by_operator" &&
+                                                        userRole ===
+                                                            "operator" && (
+                                                            <button
+                                                                className="w-full md:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center gap-2 font-medium"
+                                                                onClick={() =>
+                                                                    handleVerifikasi(
+                                                                        laporan
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Eye className="w-4 h-4" />
+                                                                Lihat Detail
+                                                            </button>
+                                                        )}
+
                                                     {/* Untuk status accepted, tampilkan tombol lihat detail */}
-                                                    {laporan.status === "accepted" && (
+                                                    {laporan.status ===
+                                                        "accepted" && (
                                                         <button
                                                             className="w-full md:w-auto px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center justify-center gap-2 font-medium"
-                                                            onClick={() => handleVerifikasi(laporan)}
+                                                            onClick={() =>
+                                                                handleVerifikasi(
+                                                                    laporan
+                                                                )
+                                                            }
                                                         >
                                                             <CheckCircle className="w-4 h-4" />
                                                             Lihat Detail
@@ -932,10 +1208,15 @@ const DaftarLaporan: React.FC = () => {
                                                     )}
 
                                                     {/* Untuk status rejected, tampilkan tombol lihat detail */}
-                                                    {laporan.status === "rejected" && (
+                                                    {laporan.status ===
+                                                        "rejected" && (
                                                         <button
                                                             className="w-full md:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center justify-center gap-2 font-medium"
-                                                            onClick={() => handleVerifikasi(laporan)}
+                                                            onClick={() =>
+                                                                handleVerifikasi(
+                                                                    laporan
+                                                                )
+                                                            }
                                                         >
                                                             <XCircle className="w-4 h-4" />
                                                             Lihat Detail
@@ -955,6 +1236,9 @@ const DaftarLaporan: React.FC = () => {
                                     <h3 className="text-2xl font-bold text-gray-800 mb-2">
                                         {activeTab === "pending"
                                             ? "Belum ada laporan pending"
+                                            : activeTab ===
+                                              "verified_by_operator"
+                                            ? "Belum ada laporan yang diverifikasi operator"
                                             : activeTab === "accepted"
                                             ? "Belum ada laporan yang diverifikasi"
                                             : "Belum ada laporan yang ditolak"}
@@ -962,6 +1246,9 @@ const DaftarLaporan: React.FC = () => {
                                     <p className="text-gray-600 text-lg">
                                         {activeTab === "pending"
                                             ? "Laporan pending belum tersedia."
+                                            : activeTab ===
+                                              "verified_by_operator"
+                                            ? "Laporan yang telah diverifikasi operator belum tersedia."
                                             : activeTab === "accepted"
                                             ? "Laporan yang diverifikasi belum tersedia."
                                             : "Laporan yang ditolak belum tersedia."}
